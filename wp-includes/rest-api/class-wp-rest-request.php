@@ -286,7 +286,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param string $key Header name.
 	 */
 	public function remove_header( $key ) {
-		$key = $this->canonicalize_header_name( $key );
 		unset( $this->headers[ $key ] );
 	}
 
@@ -354,11 +353,7 @@ class WP_REST_Request implements ArrayAccess {
 	 */
 	protected function get_parameter_order() {
 		$order = array();
-
-		$content_type = $this->get_content_type();
-		if ( $content_type['value'] === 'application/json' ) {
-			$order[] = 'JSON';
-		}
+		$order[] = 'JSON';
 
 		$this->parse_json_params();
 
@@ -369,7 +364,7 @@ class WP_REST_Request implements ArrayAccess {
 			$this->parse_body_params();
 		}
 
-		$accepts_body_data = array( 'POST', 'PUT', 'PATCH', 'DELETE' );
+		$accepts_body_data = array( 'POST', 'PUT', 'PATCH' );
 		if ( in_array( $this->method, $accepts_body_data ) ) {
 			$order[] = 'POST';
 		}
@@ -428,8 +423,15 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param mixed  $value Parameter value.
 	 */
 	public function set_param( $key, $value ) {
-		$order = $this->get_parameter_order();
-		$this->params[ $order[0] ][ $key ] = $value;
+		switch ( $this->method ) {
+			case 'POST':
+				$this->params['POST'][ $key ] = $value;
+				break;
+
+			default:
+				$this->params['GET'][ $key ] = $value;
+				break;
+		}
 	}
 
 	/**
