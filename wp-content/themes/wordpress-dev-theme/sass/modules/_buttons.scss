@@ -1,0 +1,65 @@
+@mixin button-bg($bg) {
+  background: $bg;
+  &:hover {
+    background: $color-black;
+    transition: all 0.3s ease;
+  }
+  &:active {
+    background: $color-dark-grey;
+  } 
+}
+
+.btn, a.btn {
+  color: $color-white;
+  display: inline-block;
+  text-decoration: none;
+  padding: 14px;
+  margin: 0px;
+  font-size: $font-size-xxs;
+  font-weight: bold;
+  line-height: 100%;
+  cursor: pointer;
+  border-radius: 2px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  &:hover {
+    color: $color-white;
+    transition: all 0.2s;
+  }
+  &.block {
+    display: block;
+  }
+}
+
+.button-ghost-black {
+  @extend .btn;
+  background-color: transparent;
+  border: 2px solid $color-black;
+  color: $color-black !important;
+  &:hover {
+    background-color: $color-black;
+    color: $color-white !important;
+  }
+}
+
+.button-ghost-white {
+  @extend .btn;
+  background-color: transparent;
+  border: 2px solid $color-white;
+  color: $color-white;
+  &:hover {
+    background-color: $color-white;
+    color: $color-primary !important;
+  }
+}
+
+.button-ghost-primary {
+  @extend .btn;
+  background-color: transparent;
+  border: 2px solid $color-primary;
+  color: $color-primary !important;
+  &:hover {
+    background-color: $color-primary;
+    color: $color-white !important;
+  }
+}

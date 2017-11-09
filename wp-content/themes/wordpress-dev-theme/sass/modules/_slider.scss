@@ -1,0 +1,83 @@
+.swiper-container {
+	.swiper-wrapper {
+		.swiper-slide {
+			font-size: 18px;
+			/* Center slide text vertically */
+			display: -webkit-box;
+			display: -ms-flexbox;
+			display: -webkit-flex;
+			display: flex;
+			-webkit-box-pack: center;
+			-ms-flex-pack: center;
+			-webkit-justify-content: center;
+			justify-content: center;
+			-webkit-box-align: center;
+			-ms-flex-align: center;
+			-webkit-align-items: center;
+			align-items: center;
+			height: auto;
+			background-size: contain;
+		}
+	}
+	.swiper-pagination {
+		bottom: 20px;
+		left: 0;
+		width: 100%;
+		z-index: 6 !important;
+		.swiper-pagination-bullet {
+			width: 16px;
+			height: 16px;
+			display: inline-block;
+			border-radius: 100%;
+			background: none;
+			opacity: 1;
+			border: 2px solid #fff;
+			margin: 0 4px;
+			&.swiper-pagination-bullet-active {
+				opacity: 1;
+				background: #fff;
+			}
+		}
+	}
+	.swiper-button-next,
+	.swiper-button-prev {
+		opacity: 0;
+		width: 100px;
+		height: 500px;
+		background: none;
+		margin-top: -250px;
+		transition: opacity 0.3s ease-in-out;
+		&:after {
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			font-size: 40px;
+			line-height: 500px;
+			font-family: 'wordpress_dev_theme';
+			color: $color-white;
+		}
+		&:hover {
+			opacity: 1;
+		}
+		&.swiper-button-disabled {
+			opacity: 0;
+		}
+		@media #{$media-small-down} {
+			display: none;
+		}
+	}
+	.swiper-button-next {
+		&:after {
+			content: "\62";
+			text-align: right;
+		}
+	}
+	.swiper-button-prev {
+		&:after {
+			content: "\61";
+			text-align: left;
+		}
+	}
+}
