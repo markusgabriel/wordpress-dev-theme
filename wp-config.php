@@ -29,23 +29,23 @@
  * Ersetze datenbankname_hier_einfuegen
  * mit dem Namen der Datenbank, die du verwenden möchtest.
  */
-define('DB_NAME', 'wordpress_dev_2017');
+define('DB_NAME', 'wordpress_dev_theme');
 
 /**
  * Ersetze benutzername_hier_einfuegen
  * mit deinem MySQL-Datenbank-Benutzernamen.
  */
-define('DB_USER', 'wordpress_dev');
+define('DB_USER', 'db_user');
 
 /**
  * Ersetze passwort_hier_einfuegen mit deinem MySQL-Passwort.
  */
-define('DB_PASSWORD', 'zDxh481#');
+define('DB_PASSWORD', 'Hkdg03#5');
 
 /**
  * Ersetze localhost mit der MySQL-Serveradresse.
  */
-define('DB_HOST', '176.28.51.76');
+define('DB_HOST', 'localhost');
 
 /**
  * Der Datenbankzeichensatz, der beim Erstellen der
@@ -70,14 +70,14 @@ define('DB_COLLATE', '');
  *
  * @since 2.6.0
  */
-define('AUTH_KEY',         '{A>-0cbkwGN#DA9cMT{5J7>`]TrBsJojn!enSs[o$R]JUU2{2o$[#uQ2)?mB.gdA');
-define('SECURE_AUTH_KEY',  'fJ)]+EN>Q,?05=@46`mGS$o^n*I^<? ~P(tRceg=X/%V3da6Kwe]|#qK`h5S2e$L');
-define('LOGGED_IN_KEY',    'F%S7l*5P(u K6J97{(<h>6U7Jsahnv1(/)4Tpb?.KQ~}7K<v&cS22an4X($2@-z9');
-define('NONCE_KEY',        '4kB ~ku03TO&:e<ndjSsdCXd$peYiiNqvNeE!^TQM^Nt i3.Lyxz#sA `Hcpgb&g');
-define('AUTH_SALT',        'iZo%ke2F0k!OH!v#W.r8OjAC(F)y|`9(VO0g,21bhC}q@+656;1/kzSg*Ar,>*I3');
-define('SECURE_AUTH_SALT', 'IuNzLQu@*+-i3X9aX*oQ%qb77sRTqtDyX[#t_yLtDo`dED$-VXbzn3R{mbP(PnbP');
-define('LOGGED_IN_SALT',   't#M^}[U>JGt%THmYd`MtdQ!E*:m-Ew;Q[Ednw&L11T06o=vf&Bpy/Vo!e~WzACtx');
-define('NONCE_SALT',       'T[!Q5t7s Rb3UQF[vb&io-=LAA|TwnW!fy6F,5wTCUStMY3uRH-mr_zC]P)NH$ 1');
+define('AUTH_KEY',         '(F?&SyY7_GY6^*e:Ub8-sTy+RhEF>1o`ws/|+].WBj;s+YbWv+8Q+~T<ZR6t+Z}r');
+define('SECURE_AUTH_KEY',  'r*|uj7MIb>o+,gO2drX~?L+BQ|clVgq7paUv{1~U@cA,z(PY=ZCpVZP?L v@,4m]');
+define('LOGGED_IN_KEY',    '8a+ OPA75~_;+JJWV/@[KcK50C+k<[;{PA1Y,8%oD&%O[Z!199axZI&PzHuh/[i_');
+define('NONCE_KEY',        'L=3Uw..`ph7R_R@^P%?:`ET$- G@$BUYB%Ra)CJqw9d&2{eWpw|8.AfR1u!|9irO');
+define('AUTH_SALT',        '[}Le&Yt8SS-(uV+zx+^8s4K+cWF`k%fy]4:ca>L/:[5=| |bTn+<PbnMfoyR`7>`');
+define('SECURE_AUTH_SALT', 'F+=s|,xZMq9.p[$Ksu2+3+5[cH~4nFq?v$D.X61EUXe0PpxGEt*q#Q,0&AcsZemF');
+define('LOGGED_IN_SALT',   '| B$*y&%G ye>zuXa#&l#Gpn7;fT`hboeyW-QjoHz68^HXeV>!+leSvPA8@~LFOa');
+define('NONCE_SALT',       'r4zmMxl;z)NIN-Om&ypyzl%}6<~,u9=%7;zeK70+3vfH;V)k[T-2_>D/-t#nft3Z');
 
 /**#@-*/
 
@@ -88,7 +88,7 @@ define('NONCE_SALT',       'T[!Q5t7s Rb3UQF[vb&io-=LAA|TwnW!fy6F,5wTCUStMY3uRH-m
  * verschiedene WordPress-Installationen betreiben.
  * Bitte verwende nur Zahlen, Buchstaben und Unterstriche!
  */
-$table_prefix  = 'wp_dev_';
+$table_prefix  = 'wp_';
 
 /**
  * Für Entwickler: Der WordPress-Debug-Modus.
@@ -102,7 +102,7 @@ $table_prefix  = 'wp_dev_';
  *
  * @link https://codex.wordpress.org/Debugging_in_WordPress
  */
-define('WP_DEBUG', false);
+define('WP_DEBUG', true);
 
 //define('FS_METHOD', 'direct');
 
