@@ -1,20 +1,23 @@
-</div><!-- .content -->
+                </div><!-- .content -->
 
-<footer>
-	<?php if ( is_active_sidebar( 'footer-widget' ) ) : ?>
-  <div class="footer-widget">
-    <?php dynamic_sidebar( 'footer-widget' ); ?>
-  </div>
-  <?php endif; ?>
-</footer>
+            <footer>
 
-</div><!-- .outer-wrapper -->
+                <?php if ( is_active_sidebar( 'footer-widget' ) ) : ?>
 
-<nav id="menu-push-right" class="menu-push-right">
-	<span class="menu-push-right-close"></span>
-	<?php wp_nav_menu( array( 'theme_location' => 'header-menu' ) ); ?>
-</nav>
+                    <div class="footer-widget">
 
-<?php wp_footer(); ?>
-</body>
+                        <?php dynamic_sidebar( 'footer-widget' ); ?>
+
+                    </div>
+
+                <?php endif; ?>
+
+            </footer>
+
+        </div><!-- .outer-wrapper -->
+
+    <?php wp_footer(); ?>
+
+    </body>
+
 </html>

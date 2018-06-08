@@ -36,7 +36,7 @@
 				<span></span>
 				<span></span>
 				<span></span>
-				<div><?php _e("MENU", 'wordpress_dev_theme'); ?></div>
+				<?php wp_nav_menu( array( 'theme_location' => 'header-menu' ) ); ?>
 			</div>
 		</div>
 	</header>

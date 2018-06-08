@@ -25,14 +25,15 @@ $text-font-size: $font-size-sm;
 $body-bg: #ffffff;
 $body-font-color: #000000;
 
-$media-tiny: "only screen and (max-width: 767px)";
-$media-small: "only screen and (min-width: 768px) and (max-width: 991px)";
-$media-medium: "only screen and (min-width: 992px) and (max-width: 1199px)";
-$media-large: "only screen and (min-width: 1200px)";
+$media-tiny: "only screen and (max-width: 575px)";
+$media-small: "only screen and (min-width: 576px) and (max-width: 767px)";
+$media-medium: "only screen and (min-width: 768px) and (max-width: 991px)";
+$media-large: "only screen and (min-width: 992px) and (max-width: 1199px)";
+$media-xlarge: "only screen and (min-width: 1200px)";
 
-$media-small-down: "only screen and (max-width: 991px)";
-$media-small-up: "only screen and (min-width: 768px)";
-$media-medium-up: "only screen and (min-width: 992px)";
-$media-medium-down: "only screen and (max-width: 1200px)";
-
-$media-tiny-landscape: "only screen and (max-width: 767px) and (orientation: landscape)";
+$media-small-up: "only screen and (min-width: 576px)";
+$media-small-down: "only screen and (max-width: 767px)";
+$media-medium-up: "only screen and (min-width: 768px)";
+$media-medium-down: "only screen and (max-width: 991px)";
+$media-large-up: "only screen and (min-width: 992px)";
+$media-large-down: "only screen and (max-width: 1199px)";
