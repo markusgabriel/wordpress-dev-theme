@@ -1,0 +1,29 @@
+0000.000 (0) Opened log file at time: Fri, 08 Jun 2018 14:56:31 +0000 on http://dev.blackpattern.de/wordpress-dev-theme
+0000.002 (0) UpdraftPlus WordPress backup plugin (https://updraftplus.com): 2.14.11.24 WP: 4.9.6 PHP: 7.0.30-0ubuntu0.16.04.1 (cgi-fcgi, Linux lvps83-169-39-119.dedicated.hosteurope.de 4.4.0-042stab127.2 #1 SMP Thu Jan 4 16:41:44 MSK 2018 x86_64) MySQL: 5.7.22 WPLANG: de_DE Server: Apache safe_mode: 0 max_execution_time: 900 memory_limit: 256M (used: 10.5M | 6M) multisite: N openssl: OpenSSL 1.0.2g  1 Mar 2016 mcrypt: N LANG:  ZipArchive::addFile: Y
+0000.002 (0) Free space on disk containing Updraft's temporary directory: 189232.8 MB
+0000.004 (0) Tasks: Backup files: 1 (schedule: unset) Backup DB: 1 (schedule: unset)
+0000.005 (0) Semaphore (fd, wp_options) being initialised
+0000.007 (0) Requesting semaphore lock (fd) (apparently not via scheduler)
+0000.009 (0) Set semaphore last lock (fd) time to 2018-06-08 14:56:31
+0000.009 (0) Semaphore lock (fd) complete
+0000.012 (0) Backup run: resumption=0, nonce=939eb4bb1b16, begun at=1528469791 (0s ago), job type=backup, label=Automatische Sicherung vor Update
+0000.013 (0) Scheduling a resumption (1) after 300 seconds (1528470091) in case this run gets aborted
+0000.026 (0) Checking if we have a zip executable available
+0000.028 (0) Creation of backups of directories: beginning
+0000.031 (0) Beginning creation of dump of plugins (split every: 400 MB)
+0002.314 (0) Total entities for the zip file: 278 directories, 1768 files (0 skipped as non-modified), 23 MB
+0002.396 (0) Zip: backup_2018-06-08-1656_Wordpress_Dev_Theme_939eb4bb1b16-plugins.zip.tmp: 100 files added (on-disk size: 0 KB)
+0002.472 (0) Zip: backup_2018-06-08-1656_Wordpress_Dev_Theme_939eb4bb1b16-plugins.zip.tmp: 200 files added (on-disk size: 0 KB)
+0002.474 (0) Adding batch to zip file (UpdraftPlus_ZipArchive): over 2.0 seconds have passed since the last write (4.4 MB, 201 (201) files added so far); re-opening (prior size: 0 KB)
+0002.932 (0) Zip: backup_2018-06-08-1656_Wordpress_Dev_Theme_939eb4bb1b16-plugins.zip.tmp: 300 files added (on-disk size: 1267.2 KB)
+0003.022 (0) Zip: backup_2018-06-08-1656_Wordpress_Dev_Theme_939eb4bb1b16-plugins.zip.tmp: 400 files added (on-disk size: 1267.2 KB)
+0003.106 (0) Zip: backup_2018-06-08-1656_Wordpress_Dev_Theme_939eb4bb1b16-plugins.zip.tmp: 500 files added (on-disk size: 1267.2 KB)
+0003.196 (0) Zip: backup_2018-06-08-1656_Wordpress_Dev_Theme_939eb4bb1b16-plugins.zip.tmp: 600 files added (on-disk size: 1267.2 KB)
+0003.277 (0) Zip: backup_2018-06-08-1656_Wordpress_Dev_Theme_939eb4bb1b16-plugins.zip.tmp: 700 files added (on-disk size: 1267.2 KB)
+0003.280 (0) Adding batch to zip file (UpdraftPlus_ZipArchive): over 500 files added on this batch (12.7 MB, 1768 files batched, 501 (702) added so far); re-opening (prior size: 1267.2 KB)
+0004.180 (0) User request for abort: backup job will be immediately halted
+0004.182 (0) Decremented the semaphore (fd) by 1
+0004.183 (0) Semaphore (fd) unlocked
+0004.184 (0) There were no errors in the uploads, so the 'resume' event (1) is being unscheduled
+0004.186 (0) No email will/can be sent - the user has not configured an email address.
+0004.186 (0) Das Backup wurde vom Benutzer abgebrochen

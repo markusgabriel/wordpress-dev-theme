@@ -134,6 +134,7 @@ class HTTP_WebDAV_Client_Stream
 
     var $stream_write_returned_recoverable_error = false;
     var $stream_write_final = false;
+	var $stream_write_returned_for_final_write = false;
 
     /**
      * Stream wrapper interface open() method
@@ -145,14 +146,28 @@ class HTTP_WebDAV_Client_Stream
      * @var    string return real path here if suitable
      * @return bool   true on success
      */
-    function stream_open($path, $mode, $options, &$opened_path) 
+    public function stream_open($path, $mode, $options, &$opened_path) 
     {
 
         // rewrite the request URL
         if (!$this->_parse_url($path)) return false;
 
+        $writing = preg_match('|[aw\+]|', $mode);
+        
         // query server for WebDAV options
-        if (!$this->_check_options())  return false;
+        if (!$this->_check_options()) {
+			if ($writing) {
+				// Retry on the directory instead of on the file itself
+				$old_url = $this->url;
+				$this->url = dirname($this->url);
+				if (!$this->_check_options()) {
+					$this->url = $old_url;
+					return false;
+				}
+				$this->url = $old_url;
+			}
+			return false;
+		}
 
         // now get the file metadata
         // we only need type, size, creation and modification date
@@ -190,8 +205,18 @@ class HTTP_WebDAV_Client_Stream
             } 
             $this->eof = true;
             // else fallthru
-        default: 
-            trigger_error("file not found: ".$req->getResponseCode());
+// 		case 405: // method disabled. In write mode, try to carry on.
+// 			if (preg_match('|[aw\+]|', $mode)) {
+//                 break; // write
+//             }
+//             $this->eof = true;
+		// N.B. Some 404s drop also through to here
+        default:
+			// Log only if the condition was not expected
+			global $updraftplus_404_should_be_logged;
+			if ((isset($updraftplus_404_should_be_logged) && $updraftplus_404_should_be_logged) || !isset($updraftplus_404_should_be_logged)) {
+            	trigger_error("file not found: ".$req->getResponseCode());
+			}
             return false;
         }
         
@@ -220,16 +245,17 @@ class HTTP_WebDAV_Client_Stream
 
 
     /**
-     * Streap wrapper interface close() method
+     * Stream wrapper interface close() method
      *
      * @access public
      */
-    function stream_close() 
+    public function stream_close() 
     {
         global $updraftplus, $updraftplus_webdav_filepath;
-        if ($this->stream_write_returned_recoverable_error) {
+		if ((defined('UPDRAFTPLUS_WEBDAV_NEVER_CHUNK') && UPDRAFTPLUS_WEBDAV_NEVER_CHUNK && true === $this->stream_write_returned_for_final_write) || $this->stream_write_returned_recoverable_error) {
             if (!empty($updraftplus_webdav_filepath) && is_readable($updraftplus_webdav_filepath)) {
                 $this->position = 0;
+				$this->stream_write_returned_for_final_write = false;
                 $this->stream_write_final = true;
                 if (false === $this->stream_write(file_get_contents($updraftplus_webdav_filepath))) {
                     $this->stream_write_final = false;
@@ -263,7 +289,7 @@ class HTTP_WebDAV_Client_Stream
      * @access public
      * @return array  stat entries
      */
-    function stream_stat() 
+    public function stream_stat() 
     {
         // we already have collected the needed information 
         // in stream_open() :)
@@ -277,14 +303,14 @@ class HTTP_WebDAV_Client_Stream
      * @param  int    requested byte count
      * @return string read data
      */
-    function stream_read($count) 
+    public function stream_read($count) 
     {
         // do some math
         $start = $this->position;
         $end   = $start + $count - 1;
 
         // create a GET request with a range
-        $req = &$this->_startRequest(HTTP_REQUEST_METHOD_GET);
+        $req = $this->_startRequest(HTTP_REQUEST_METHOD_GET);
         if (is_string($this->user)) {
             $req->setBasicAuth($this->user, @$this->pass);          
         }
@@ -336,14 +362,15 @@ class HTTP_WebDAV_Client_Stream
      * @param  string data to write
      * @return int    number of bytes actually written
      */
-    function stream_write($buffer) 
+    public function stream_write($buffer) 
     {
-        // do some math
+		// do some math
         $start = $this->position;
         $end   = $this->position + strlen($buffer) - 1;
         
         if (((defined('UPDRAFTPLUS_WEBDAV_NEVER_CHUNK') && UPDRAFTPLUS_WEBDAV_NEVER_CHUNK) || $this->stream_write_returned_recoverable_error) && !$this->stream_write_final) {
-            $this->position += strlen($buffer);
+			$this->position += strlen($buffer);
+			$this->stream_write_returned_for_final_write = true;
             return 1 + $end - $start;
         }
 
@@ -449,7 +476,7 @@ class HTTP_WebDAV_Client_Stream
      * @access public
      * @return bool   true if end of file was reached
      */
-    function stream_eof() 
+    public function stream_eof() 
     {
         // another simple one 
         return $this->eof;
@@ -461,7 +488,7 @@ class HTTP_WebDAV_Client_Stream
      * @access public
      * @return int    current file position
      */
-    function stream_tell() 
+    public function stream_tell() 
     {
         // just return the current position
         return $this->position;
@@ -475,7 +502,7 @@ class HTTP_WebDAV_Client_Stream
      * @param  int    seek mode
      * @return bool   true on success
      */
-    function stream_seek($pos, $whence) 
+    public function stream_seek($pos, $whence) 
     {
         switch ($whence) {
         case SEEK_SET:
@@ -508,7 +535,7 @@ class HTTP_WebDAV_Client_Stream
      * @param  string URL to get stat information for
      * @return array  stat information
      */
-    function url_stat($url) 
+    public function url_stat($url) 
     {
         // we map this one to open()/stat()/close()
         // there won't be much gain in inlining this
@@ -521,10 +548,6 @@ class HTTP_WebDAV_Client_Stream
         return $stat;
     }
 
-
-
-
-
     /**
      * Stream wrapper interface opendir() method
      *
@@ -533,7 +556,7 @@ class HTTP_WebDAV_Client_Stream
      * @param  array  not used here
      * @return bool   true on success
      */
-    function dir_opendir($path, $options) 
+    public function dir_opendir($path, $options) 
     {
         // rewrite the request URL
         if (!$this->_parse_url($path)) return false;
@@ -600,7 +623,7 @@ class HTTP_WebDAV_Client_Stream
      * @access public
      * @return string filename
      */
-    function dir_readdir() 
+    public function dir_readdir() 
     {
         // bailout if directory is empty
         if (!is_array($this->dirfiles)) {
@@ -621,7 +644,7 @@ class HTTP_WebDAV_Client_Stream
      *
      * @access public
      */
-    function dir_rewinddir() 
+    public function dir_rewinddir() 
     {
         // bailout if directory content info has already
         // been freed
@@ -638,7 +661,7 @@ class HTTP_WebDAV_Client_Stream
      *
      * @access public
      */
-    function dir_closedir() 
+    public function dir_closedir() 
     {
         // free stored directory content
         if (is_array($this->dirfiles)) {
@@ -655,7 +678,7 @@ class HTTP_WebDAV_Client_Stream
      * @param  string collection URL to be created
      * @return bool   true on access
      */
-    function mkdir($path) 
+    public function mkdir($path) 
     {
         // rewrite the request URL
         if (!$this->_parse_url($path)) return false;
@@ -691,7 +714,7 @@ class HTTP_WebDAV_Client_Stream
      * @param  string collection URL to be created
      * @return bool   true on access
      */
-    function rmdir($path) 
+    public function rmdir($path) 
     {
         // TODO: this should behave like "rmdir", currently it is more like "rm -rf"
 
@@ -730,7 +753,7 @@ class HTTP_WebDAV_Client_Stream
      * @param  string resource URL to move to
      * @return bool   true on access
      */
-    function rename($path, $new_path) 
+    public function rename($path, $new_path) 
     {
         // rewrite the request URL
         if (!$this->_parse_url($path)) return false;
@@ -769,7 +792,7 @@ class HTTP_WebDAV_Client_Stream
      * @param  string resource URL to be removed
      * @return bool   true on success
      */
-    function unlink($path) 
+    public function unlink($path) 
     {
         // rewrite the request URL
         if (!$this->_parse_url($path)) return false;
@@ -806,7 +829,7 @@ class HTTP_WebDAV_Client_Stream
      * @access public, static
      * @return bool   true on success (even if SSL doesn't work)
      */
-    static function register() 
+    public static function register() 
     {
         // check that we have the required feature
         if (!function_exists("stream_register_wrapper")) {
@@ -834,7 +857,7 @@ class HTTP_WebDAV_Client_Stream
      * @param  string  original request URL
      * @return bool    true on success else false
      */
-    function _parse_url($path) 
+    private function _parse_url($path) 
     {
         // rewrite the WebDAV url as a plain HTTP url
         $url = parse_url($path);
@@ -900,7 +923,7 @@ class HTTP_WebDAV_Client_Stream
      * @access private
      * @return bool    true on success else false
      */
-    function _check_options() 
+    private function _check_options() 
     {
         // now check OPTIONS reply for WebDAV response headers
         $req = $this->_startRequest(HTTP_REQUEST_METHOD_OPTIONS);
@@ -943,7 +966,7 @@ class HTTP_WebDAV_Client_Stream
      * @access private
      * @return bool    true on success else false
      */
-    function stream_lock($mode) 
+    private function stream_lock($mode) 
     {
         /* TODO:
          - think over how to refresh locks
@@ -1009,7 +1032,7 @@ class HTTP_WebDAV_Client_Stream
         return $ret;
     }
 
-    function _startRequest($method)
+    private function _startRequest($method)
     {
         #$req = &new HTTP_Request($this->url);
         $req = new HTTP_Request($this->url);
