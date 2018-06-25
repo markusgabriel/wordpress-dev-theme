@@ -17,6 +17,23 @@ if ( ! function_exists( 'wordpress_dev_theme_setup' ) ):
 endif; // wordpress_dev_theme_setup
 
 
+
+
+// IMAGE SIZES
+add_action('init', 'remove_then_add_image_sizes');
+function remove_then_add_image_sizes() {
+	remove_image_size('medium');
+	remove_image_size('large');
+	remove_image_size('thumbnail');
+	add_image_size('full');
+	add_image_size('image_1200', 1200);
+	add_image_size('image_800', 800);
+	add_image_size('image_600', 600);
+}
+
+
+
+
 // MENU AREAS
 function wordpress_dev_theme_menus() {
   register_nav_menus(
@@ -26,6 +43,8 @@ function wordpress_dev_theme_menus() {
   );
 }
 add_action( 'init', 'wordpress_dev_theme_menus' );
+
+
 
 
 // POST HEADER

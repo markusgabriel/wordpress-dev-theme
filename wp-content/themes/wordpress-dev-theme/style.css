@@ -6,7 +6,7 @@ Text Domain: wordpress-dev-theme
 Version: 1.1.0
 */
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,600,300);
-@font-face { font-family: 'iconfont'; src: url("fonts/iconfont.eot?mn2re3"); src: url("fonts/iconfont.eot?mn2re3#iefix") format("embedded-opentype"), url("fonts/iconfont.woff2?mn2re3") format("woff2"), url("fonts/iconfont.ttf?mn2re3") format("truetype"), url("fonts/iconfont.woff?mn2re3") format("woff"), url("fonts/iconfont.svg?mn2re3#iconfont") format("svg"); font-weight: normal; font-style: normal; }
+@font-face { font-family: 'iconfont'; src: url("fonts/iconfont/iconfont.eot?mn2re3"); src: url("fonts/iconfont/iconfont.eot?mn2re3#iefix") format("embedded-opentype"), url("fonts/iconfont/iconfont.woff2?mn2re3") format("woff2"), url("fonts/iconfont/iconfont.ttf?mn2re3") format("truetype"), url("fonts/iconfont/iconfont.woff?mn2re3") format("woff"), url("fonts/iconfont/iconfont.svg?mn2re3#iconfont") format("svg"); font-weight: normal; font-style: normal; }
 @media -sass-debug-info{filename{font-family:file\:\/\/\/Users\/markusgabriel\/_dev\/wordpress-dev-theme\/wp-content\/themes\/wordpress-dev-theme\/sass\/_iconfont\.scss}line{font-family:\0000313}}
 [class^="icon-"], [class*=" icon-"] { /* use !important to prevent issues with browser extensions that change fonts */ font-family: 'iconfont' !important; speak: none; font-style: normal; font-weight: normal; font-variant: normal; text-transform: none; line-height: 1; /* Better Font Rendering =========== */ -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 

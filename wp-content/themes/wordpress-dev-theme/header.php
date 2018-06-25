@@ -30,14 +30,14 @@
 
 	<header class="main">
 		<div class="main-header">
-			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a>
+			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="home-link"><?php bloginfo( 'name' ); ?></a>
 			<div class="open-menu">
 				<span></span>
 				<span></span>
 				<span></span>
 				<span></span>
-				<?php wp_nav_menu( array( 'theme_location' => 'header-menu' ) ); ?>
 			</div>
+			<?php wp_nav_menu( array( 'theme_location' => 'header-menu' ) ); ?>
 		</div>
 	</header>
 	<div class="outer-wrapper">

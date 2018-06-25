@@ -1027,8 +1027,8 @@
 	"creationDate": 527531142,
 	"displayValue": "Wordpress Dev Theme",
 	"displayValueWasSetByUser": 1,
-	"iconImageName": "meme-daenerys",
-	"iconImageWasSetByUser": 0
+	"iconImageName": "brackets_gray",
+	"iconImageWasSetByUser": 1
 	},
 "projectSettings": {
 	"abortBuildOnError": 1,
