@@ -16,9 +16,9 @@
 	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo get_template_directory_uri(); ?>/images/favicons/favicon-32x32.png">
 	<link rel="icon" type="image/png" sizes="96x96" href="<?php echo get_template_directory_uri(); ?>/images/favicons/favicon-96x96.png">
 	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo get_template_directory_uri(); ?>/images/favicons/favicon-16x16.png">
-	<link rel="manifest" href="/manifest.json">
+	<link rel="manifest" href="<?php echo get_template_directory_uri(); ?>/images/favicons/manifest.json">
 	<meta name="msapplication-TileColor" content="#ffffff">
-	<meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+	<meta name="msapplication-TileImage" content="<?php echo get_template_directory_uri(); ?>/images/favicons/ms-icon-144x144.png">
 	<meta name="theme-color" content="#ffffff">
 	<?php if ( is_singular() && pings_open( get_queried_object() ) ) : ?>
 	<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>">
@@ -31,7 +31,7 @@
 	<header class="main">
 		<div class="main-header">
 			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="home-link"><?php bloginfo( 'name' ); ?></a>
-			<div class="open-menu">
+			<div id="menutoggle" class="open-menu">
 				<span></span>
 				<span></span>
 				<span></span>
