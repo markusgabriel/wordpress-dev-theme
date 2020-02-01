@@ -1,9 +1,9 @@
 /*!
-Theme Name: wordpress-dev-theme
+Theme Name: Wordpress Dev Theme
 Author: Markus Gabriel - Blackpattern.de
-Author URI: www.blackpattern.de
+Author URI: https://blackpattern.de
 Text Domain: wordpress-dev-theme
-Version: 1.1.0
+Version: 1.2
 */
 
 // define standards
@@ -14,5 +14,4 @@ Version: 1.1.0
 
 @import "typography";
 
-@import "mixins";
 @import "modules";

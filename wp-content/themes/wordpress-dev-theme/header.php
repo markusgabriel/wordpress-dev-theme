@@ -28,8 +28,8 @@
 
 <body <?php body_class(); ?> id="top">
 
-	<header class="main">
-		<div class="main-header">
+	<header class="header">
+		<div class="header__inner">
 			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="home-link"><?php bloginfo( 'name' ); ?></a>
 			<div id="menutoggle" class="open-menu">
 				<span></span>
@@ -40,5 +40,3 @@
 			<?php wp_nav_menu( array( 'theme_location' => 'header-menu' ) ); ?>
 		</div>
 	</header>
-	<div class="outer-wrapper">
-		<div class="content">

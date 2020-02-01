@@ -38,97 +38,12 @@ function remove_then_add_image_sizes() {
 function wordpress_dev_theme_menus() {
   register_nav_menus(
     array(
-      'header-menu' => __( 'Header Haupt-Navigation', 'wordpress_dev_theme' )
+      'header-menu' => __( 'Header Haupt-Navigation', 'wordpress_dev_theme' ),
+      'footer-menu' => __( 'Footer Navigation', 'wordpress_dev_theme' )
     ) 
   );
 }
 add_action( 'init', 'wordpress_dev_theme_menus' );
-
-
-
-
-// POST HEADER
-function wordpress_dev_theme_the_post_header() {
-	global $post;
-    $taxonomy = 'category';
-    $post_terms = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) );
-    $separator = ' '; ?>
-
-    <div class="entry-header">
-
-        <div class="entry-meta">
-
-            <?php echo get_avatar( get_the_author_meta( 'ID' ) , 45 ); ?>
-            <span class="author-name">
-                <?php _e('From:', 'wordpress_dev_theme'); ?>
-                <strong>
-                    <a href="<?php echo get_author_posts_url( get_the_author_meta( 'ID' ), get_the_author_meta( 'user_nicename' ) ); ?>">
-                        <?php the_author(); ?>
-                    </a>
-                </strong>
-            </span>
-
-            <span class="date"> &bull; <?php the_time('d.m.Y'); ?></span>
-
-        </div>
-
-        <ul class="categories">
-
-            <?php if ( !empty( $post_terms ) && !is_wp_error( $post_terms ) ) :
-                $term_ids = implode( ', ' , $post_terms );
-                $terms = wp_list_categories( 'title_li=&echo=0&taxonomy=' . $taxonomy . '&include=' . $term_ids );
-                $terms = rtrim( trim( str_replace( '<br />',  $separator, $terms ) ), $separator );
-                echo  $terms;
-            endif; ?>
-
-        </ul>
-
-        <h1><?php the_title(); ?></h1>
-
-        <div class="image-container">
-
-            <?php if (has_post_thumbnail()) : ?>
-
-                <figure class="featured-image">
-
-                    <?php the_post_thumbnail(); ?>
-
-                </figure>
-
-            <?php endif; ?>
-
-        </div>
-
-    </div>
-<?php }
-
-
-
-
-// POST FOOTER
-function wordpress_dev_theme_the_post_footer() { ?>
-<div class="entry-footer">
-
-    <div class="row">
-
-        <div class="col-xs-12 col-sm-12">
-
-            <?php if(get_the_tag_list()) : ?>
-
-                <div class="tags">
-
-                    <?php echo get_the_tag_list('<span class="tags-title">Tags </span><ul class="tags"><li>','</li><li>','</li></ul>'); ?>
-
-                </div>
-
-            <?php endif; ?>
-
-        </div>
-
-    </div>
-
-</div>
-<?php }
 
 
 
@@ -155,12 +70,10 @@ if (!is_admin()) add_action("wp_enqueue_scripts", "wordpress_dev_theme_script_en
 function wordpress_dev_theme_script_enqueue() {
     wp_deregister_script('jquery');
     wp_register_script('jquery', get_template_directory_uri() . '/js/min/jquery.min.js', array(), '3.3.1', false);
-    wp_register_style( 'bootstrap', get_stylesheet_directory_uri() . '/bootstrap/css/bootstrap.min.css', array(), '4.1.1');
-    wp_register_script('bootstrap-script', get_template_directory_uri() . '/bootstrap/js/bootstrap.min.js', array('jquery'), '4.1.1', false);
     wp_register_style('wordpressdevtheme-style', get_stylesheet_uri(), array(), '1.1.0', false);
     wp_register_script('wordpressdevtheme-script', get_template_directory_uri() . '/js/script.js', array(), '1.0.0', false);
-    wp_register_script('wordpressdevtheme-swiper-script', get_template_directory_uri() . '/js/min/swiper.min.js', array(), '4.3.3', false);
-    wp_register_style('swiper-style', get_template_directory_uri() . '/css/min/swiper.min.css', array(), '4.3.3');
+    wp_register_script('wordpressdevtheme-swiper-script', get_template_directory_uri() . '/js/min/swiper.min.js', array(), '5.3.0', false);
+    wp_register_style('swiper-style', get_template_directory_uri() . '/css/min/swiper.min.css', array(), '5.3.0');
 
     wp_enqueue_script('jquery');
 
@@ -249,9 +162,9 @@ function fb_mce_editor_buttons( $buttons ) {
 function my_mce_before_init_insert_formats( $init_array ) {  
   $style_formats = array(  
     array(  
-      'title' => 'Roter Text',  
+      'title' => 'Text Primärfarbe',
       'inline' => 'span',  
-      'classes' => 'roter-text',
+      'classes' => 'text-primary',
       'wrapper' => false,
     )
   );  

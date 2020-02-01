@@ -1,20 +1,18 @@
-                </div><!-- .content -->
 
-            <footer>
+        <footer class="footer">
 
-                <?php if ( is_active_sidebar( 'footer-widget' ) ) : ?>
+            <?php if ( is_active_sidebar( 'footer-widget' ) ) : ?>
 
-                    <div class="footer-widget">
+                <div class="footer__inner">
 
-                        <?php dynamic_sidebar( 'footer-widget' ); ?>
+                    <?php dynamic_sidebar( 'footer-widget' ); ?>
 
-                    </div>
+                </div>
 
-                <?php endif; ?>
+            <?php endif; ?>
 
-            </footer>
+        </footer>
 
-        </div><!-- .outer-wrapper -->
 
     <?php wp_footer(); ?>
 

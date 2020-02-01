@@ -26,7 +26,6 @@ h4, .h4 {
 
 h5, .h5 {
 	font-size: $font-size-xs;
-	font-family: $font-open-sans;
 	font-weight: bold;
 	line-height: 140%;
 	margin: 0;
@@ -34,18 +33,15 @@ h5, .h5 {
 
 h6, .h6 {
 	font-size: $font-size-xxs;
-	font-family: $font-open-sans;
 	line-height: 180%;
 	margin: 0;
 }
 
 p, li, b, strong, em, td, th {
 	font-size: $text-font-size;
-	font-family: $font-open-sans;
 	line-height: 150%;
 }
 
 b, strong {
-	font-family: $font-open-sans;
 	font-weight: 600;
 }

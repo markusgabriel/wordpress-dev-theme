@@ -9,7 +9,7 @@ textarea {
 }
 
 input[type="submit"] {
-	@extend .button-ghost-black;
+	@extend .button.is--primary;
 	cursor: pointer;
 	&:hover {
 		color: $color-white;
