@@ -35,12 +35,12 @@ define('DB_NAME', 'wordpress_dev_theme');
  * Ersetze benutzername_hier_einfuegen
  * mit deinem MySQL-Datenbank-Benutzernamen.
  */
-define('DB_USER', 'db_user');
+define('DB_USER', 'root');
 
 /**
  * Ersetze passwort_hier_einfuegen mit deinem MySQL-Passwort.
  */
-define('DB_PASSWORD', 'Hkdg03#5');
+define('DB_PASSWORD', 'M2ygJjsyek=g');
 
 /**
  * Ersetze localhost mit der MySQL-Serveradresse.
