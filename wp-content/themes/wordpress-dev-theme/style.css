@@ -3,186 +3,148 @@ Theme Name: Wordpress Dev Theme
 Author: Markus Gabriel - Blackpattern.de
 Author URI: https://blackpattern.de
 Text Domain: wordpress-dev-theme
-Version: 1.2
+Version: 1.3
 */
 @font-face { font-family: 'iconfont'; src: url("fonts/iconfont/iconfont.eot?mn2re3"); src: url("fonts/iconfont/iconfont.eot?mn2re3#iefix") format("embedded-opentype"), url("fonts/iconfont/iconfont.woff2?mn2re3") format("woff2"), url("fonts/iconfont/iconfont.ttf?mn2re3") format("truetype"), url("fonts/iconfont/iconfont.woff?mn2re3") format("woff"), url("fonts/iconfont/iconfont.svg?mn2re3#iconfont") format("svg"); font-weight: normal; font-style: normal; }
 
-/* line 13, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ [class^="icon-"], [class*=" icon-"] { /* use !important to prevent issues with browser extensions that change fonts */ font-family: 'iconfont' !important; speak: none; font-style: normal; font-weight: normal; font-variant: normal; text-transform: none; line-height: 1; /* Better Font Rendering =========== */ -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+[class^="icon-"], [class*=" icon-"] { /* use !important to prevent issues with browser extensions that change fonts */ font-family: 'iconfont' !important; speak: none; font-style: normal; font-weight: normal; font-variant: normal; text-transform: none; line-height: 1; /* Better Font Rendering =========== */ -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
-/* line 28, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ .icon-envelope:before { content: "\e900"; }
+.icon-envelope:before { content: "\e900"; }
 
-/* line 31, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ .icon-facebook:before { content: "\e901"; }
+.icon-facebook:before { content: "\e901"; }
 
-/* line 34, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ .icon-file-pdf:before { content: "\e902"; }
+.icon-file-pdf:before { content: "\e902"; }
 
-/* line 37, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ .icon-google-plus:before { content: "\e903"; }
+.icon-google-plus:before { content: "\e903"; }
 
-/* line 40, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ .icon-instagram:before { content: "\e904"; }
+.icon-instagram:before { content: "\e904"; }
 
-/* line 43, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ .icon-linkedin:before { content: "\e905"; }
+.icon-linkedin:before { content: "\e905"; }
 
-/* line 46, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ .icon-phone:before { content: "\e906"; }
+.icon-phone:before { content: "\e906"; }
 
-/* line 49, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ .icon-twitter:before { content: "\e907"; }
+.icon-twitter:before { content: "\e907"; }
 
-/* line 52, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_iconfont.scss */ .icon-youtube:before { content: "\e908"; }
+.icon-youtube:before { content: "\e908"; }
 
-/* line 1, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ body, html { position: relative; width: 100%; padding: 0; margin: 0; font-size: 16px; color: #000000; background-color: #ffffff; font-family: "Helvetica", sans-serif; box-sizing: border-box; }
+body, html { position: relative; width: 100%; padding: 0; margin: 0; font-size: 16px; color: #000000; background-color: #ffffff; font-family: "Helvetica", sans-serif; box-sizing: border-box; }
 
-/* line 13, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ *, *:before, *:after { box-sizing: border-box; }
+*, *:before, *:after { box-sizing: border-box; }
 
-/* line 17, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ a { transition: all 0.2s; }
+a { transition: all 0.2s; }
 
-/* line 19, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ a:link { color: #ff0000; text-decoration: none; }
+a:link { color: #ff0000; text-decoration: none; }
 
-/* line 23, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ a:visited { color: #ff0000; text-decoration: none; }
+a:visited { color: #ff0000; text-decoration: none; }
 
-/* line 27, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ a:hover { color: #000000; text-decoration: none; }
+a:hover { color: #000000; text-decoration: none; }
 
-/* line 33, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ .text-primary { color: #ff0000; }
+.text-primary { color: #ff0000; }
 
-/* line 37, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ ul.styled-unordered-list { padding: 0; margin: 10px 0; list-style: none; clear: both; }
+ul.styled-unordered-list { padding: 0; margin: 10px 0; list-style: none; clear: both; }
 
-/* line 42, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ ul.styled-unordered-list li { margin: 0; padding: 5px 0px 5px 30px; position: relative; }
+ul.styled-unordered-list li { margin: 0; padding: 5px 0px 5px 30px; position: relative; }
 
-/* line 46, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ ul.styled-unordered-list li:before { display: block; content: ""; width: 5px; height: 5px; border-radius: 20px; background-color: #ff0000; position: absolute; top: 13px; left: 0; }
+ul.styled-unordered-list li:before { display: block; content: ""; width: 5px; height: 5px; border-radius: 20px; background-color: #ff0000; position: absolute; top: 13px; left: 0; }
 
-/* line 60, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ ol.styled-ordered-list { counter-reset: li; list-style: none; margin: 10px 0; padding: 0; }
+ol.styled-ordered-list { counter-reset: li; list-style: none; margin: 10px 0; padding: 0; }
 
-/* line 65, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ ol.styled-ordered-list > li { margin: 0; padding: 10px 0px 10px 30px; position: relative; }
+ol.styled-ordered-list > li { margin: 0; padding: 10px 0px 10px 30px; position: relative; }
 
-/* line 69, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ ol.styled-ordered-list > li::before { content: counter(li) "."; counter-increment: li; color: #ff0000; position: absolute; top: 10px; left: 0; }
+ol.styled-ordered-list > li::before { content: counter(li) "."; counter-increment: li; color: #ff0000; position: absolute; top: 10px; left: 0; }
 
-/* line 80, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ img { max-width: 100%; height: auto; }
+img { max-width: 100%; height: auto; }
 
-/* line 85, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ .breadcrumbs { margin-top: 20px; }
+.breadcrumbs { margin-top: 20px; }
 
-/* line 89, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ blockquote { border: 0; }
+blockquote { border: 0; }
 
-/* line 93, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ iframe { margin: 0 auto; display: block; max-width: 100%; }
+iframe { margin: 0 auto; display: block; max-width: 100%; }
 
-/* line 99, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ .aligncenter { margin: 0 auto; display: block; }
+.aligncenter { margin: 0 auto; display: block; }
 
-/* line 103, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ .alignleft { float: left; margin: 0 20px 20px 0; }
+.alignleft { float: left; margin: 0 20px 20px 0; }
 
-/* line 107, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_defaults.scss */ .alignright { float: right; margin: 0 0 20px 20px; }
+.alignright { float: right; margin: 0 0 20px 20px; }
 
-/* line 1, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_typography.scss */ h1, .h1 { font-size: 2rem; font-weight: 600; margin: 20px 0; line-height: 120%; }
+h1, .h1 { font-size: 2rem; font-weight: 600; margin: 20px 0; line-height: 120%; }
 
-/* line 8, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_typography.scss */ h2, .h2 { font-size: 2rem; font-weight: 300; line-height: 140%; margin: 0 0 20px 0; }
+h2, .h2 { font-size: 2rem; font-weight: 300; line-height: 140%; margin: 0 0 20px 0; }
 
-/* line 15, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_typography.scss */ h3, .h3 { font-size: 1.625rem; line-height: 1.4em; margin: 20px 0px 25px; }
+h3, .h3 { font-size: 1.625rem; line-height: 1.4em; margin: 20px 0px 25px; }
 
-/* line 21, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_typography.scss */ h4, .h4 { font-size: 1rem; line-height: 1.4em; margin: 0 0 10px 0; }
+h4, .h4 { font-size: 1rem; line-height: 1.4em; margin: 0 0 10px 0; }
 
-/* line 27, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_typography.scss */ h5, .h5 { font-size: 0.875rem; font-weight: bold; line-height: 140%; margin: 0; }
+h5, .h5 { font-size: 0.875rem; font-weight: bold; line-height: 140%; margin: 0; }
 
-/* line 34, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_typography.scss */ h6, .h6 { font-size: 0.75rem; line-height: 180%; margin: 0; }
+h6, .h6 { font-size: 0.75rem; line-height: 180%; margin: 0; }
 
-/* line 40, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_typography.scss */ p, li, b, strong, em, td, th { font-size: 1rem; line-height: 150%; }
+p, li, b, strong, em, td, th { font-size: 1rem; line-height: 150%; }
 
-/* line 45, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/_typography.scss */ b, strong { font-weight: 600; }
+b, strong { font-weight: 600; }
 
-/* line 1, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .btn, .button.is--medium, .button.is--large, .button.is--small, .button.is--block, a.btn, a.button.is--medium, a.button.is--large, a.button.is--small, a.button.is--block { display: inline-block; text-decoration: none; padding: 14px 20px; margin: 0 10px 0 0; cursor: pointer; transition: all 0.3s; }
+.btn, .button.is--block, input.is--block[type="submit"], .button.is--small, input.is--small[type="submit"], .button.is--large, input.is--large[type="submit"], .button.is--medium, input.is--medium[type="submit"], a.btn { display: inline-block; text-decoration: none; padding: 14px 20px; margin: 0 10px 0 0; cursor: pointer; transition: all 0.3s; }
 
-/* line 12, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--primary, input[type="submit"] { border: 1px solid #ff0000; color: #FFFFFF !important; background-color: #ff0000; }
+.button.is--primary, input.button[type="submit"], input[type="submit"] { border: 1px solid #ff0000; color: #FFFFFF !important; background-color: #ff0000; }
 
-/* line 17, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--primary:hover, input[type="submit"]:hover { border: 1px solid #ff0000; background-color: #ff0000; }
+.button.is--primary:hover, input[type="submit"]:hover { border: 1px solid #ff0000; background-color: #ff0000; }
 
-/* line 23, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--secondary { border: 1px solid #ff0000; color: #ff0000 !important; background-color: transparent; }
+.button.is--secondary, input.is--secondary[type="submit"] { border: 1px solid #ff0000; color: #ff0000 !important; background-color: transparent; }
 
-/* line 28, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--secondary:hover { border: 1px solid #ff0000; color: #ff0000 !important; background-color: transparent; }
+.button.is--secondary:hover, input.is--secondary[type="submit"]:hover { border: 1px solid #ff0000; color: #ff0000 !important; background-color: transparent; }
 
-/* line 35, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--black { border: 1px solid #000000; color: #FFFFFF !important; background-color: #000000; }
+.button.is--black, input.is--black[type="submit"] { border: 1px solid #000000; color: #FFFFFF !important; background-color: #000000; }
 
-/* line 45, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--medium { font: 400 16px/26px "Helvetica", sans-serif; }
+.button.is--medium, input.is--medium[type="submit"] { font: 400 16px/26px "Helvetica", sans-serif; }
 
-/* line 50, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--large { font: 400 16px/26px "Helvetica", sans-serif; }
+.button.is--large, input.is--large[type="submit"] { font: 400 16px/26px "Helvetica", sans-serif; }
 
-/* line 55, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--small { font: 400 16px/26px "Helvetica", sans-serif; }
+.button.is--small, input.is--small[type="submit"] { font: 400 16px/26px "Helvetica", sans-serif; }
 
-/* line 60, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--icon-right-animated { position: relative; }
+.button.is--icon-right-animated, input.is--icon-right-animated[type="submit"] { position: relative; }
 
-/* line 63, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--icon-right-animated span { opacity: 0; transform: translateX(-10px); font-size: 18px; position: absolute; top: 11px; right: 10px; transition: all .1s ease-out; }
+.button.is--icon-right-animated span, input.is--icon-right-animated[type="submit"] span { opacity: 0; transform: translateX(-10px); font-size: 18px; position: absolute; top: 11px; right: 10px; transition: all .1s ease-out; }
 
-/* line 72, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--icon-right-animated span.icon-search { top: 9px; right: 7px; font-size: 28px; }
+.button.is--icon-right-animated span.icon-search, input.is--icon-right-animated[type="submit"] span.icon-search { top: 9px; right: 7px; font-size: 28px; }
 
-/* line 79, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--icon-right-animated:hover { padding-right: 40px !important; }
+.button.is--icon-right-animated:hover, input.is--icon-right-animated[type="submit"]:hover { padding-right: 40px !important; }
 
-/* line 82, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--icon-right-animated:hover span { transition: all .3s ease-out .2s; opacity: 1; transform: translateX(0); }
+.button.is--icon-right-animated:hover span, input.is--icon-right-animated[type="submit"]:hover span { transition: all .3s ease-out .2s; opacity: 1; transform: translateX(0); }
 
-/* line 90, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--icon-right { position: relative; padding-right: 40px !important; }
+.button.is--icon-right, input.is--icon-right[type="submit"] { position: relative; padding-right: 40px !important; }
 
-/* line 94, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--icon-right span { font-size: 18px; position: absolute; top: 11px; right: 10px; transition: all .1s ease-out; }
+.button.is--icon-right span, input.is--icon-right[type="submit"] span { font-size: 18px; position: absolute; top: 11px; right: 10px; transition: all .1s ease-out; }
 
-/* line 101, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--icon-right span.icon-search { top: 9px; right: 7px; font-size: 28px; }
+.button.is--icon-right span.icon-search, input.is--icon-right[type="submit"] span.icon-search { top: 9px; right: 7px; font-size: 28px; }
 
-/* line 109, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_buttons.scss */ .button.is--block { display: block; }
+.button.is--block, input.is--block[type="submit"] { display: block; }
 
-/* line 1, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ input[type="text"], input[type="email"], input[type="url"], textarea { width: 100%; border: 0; background-color: #f5f5f5; padding: 5px 10px; }
+input[type="text"], input[type="email"], input[type="url"], textarea { width: 100%; border: 0; background-color: #f5f5f5; padding: 5px 10px; }
 
-/* line 11, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ input[type="submit"] { cursor: pointer; }
+input[type="submit"] { cursor: pointer; }
 
-/* line 14, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ input[type="submit"]:hover { color: #FFFFFF; }
+input[type="submit"]:hover { color: #FFFFFF; }
 
-/* line 19, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ button, input, select, textarea { font-weight: 300; font-size: 0.875rem; }
+button, input, select, textarea { font-weight: 300; font-size: 0.875rem; }
 
-/* line 25, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ .comment-form input[type="text"], .comment-form input[type="email"], .comment-form input[type="url"], .comment-form textarea { background-color: #FFFFFF !important; width: 100% !important; }
+.comment-form input[type="text"], .comment-form input[type="email"], .comment-form input[type="url"], .comment-form textarea { background-color: #FFFFFF !important; width: 100% !important; }
 
-@media only screen and (min-width: 768px) { /* line 25, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ .comment-form input[type="text"], .comment-form input[type="email"], .comment-form input[type="url"], .comment-form textarea { width: 50% !important; } }
+@media only screen and (min-width: 768px) { .comment-form input[type="text"], .comment-form input[type="email"], .comment-form input[type="url"], .comment-form textarea { width: 50% !important; } }
 
-/* line 35, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ .comment-form input[type="submit"] { margin-top: 20px; }
+.comment-form input[type="submit"] { margin-top: 20px; }
 
-/* line 38, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ .comment-form label { display: block; font-weight: normal; font-size: 1rem; }
+.comment-form label { display: block; font-weight: normal; font-size: 1rem; }
 
-/* line 45, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ article.comment { padding-bottom: 20px; border-bottom: 1px solid #8f8f8f; margin-bottom: 20px; }
+article.comment { padding-bottom: 20px; border-bottom: 1px solid #8f8f8f; margin-bottom: 20px; }
 
-/* line 49, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ article.comment img.avatar { float: left; border-radius: 100%; margin-right: 20px; }
+article.comment img.avatar { float: left; border-radius: 100%; margin-right: 20px; }
 
-/* line 55, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ article.comment .commenttext .commenttitle { line-height: 65px; }
+article.comment .commenttext .commenttitle { line-height: 65px; }
 
-/* line 61, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ ::-webkit-input-placeholder { /* Chrome/Opera/Safari */ color: #000000; font-weight: 300; }
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */ color: #000000; font-weight: 300; }
 
-/* line 65, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ ::-moz-placeholder { /* Firefox 19+ */ color: #000000; font-weight: 300; }
+::-moz-placeholder { /* Firefox 19+ */ color: #000000; font-weight: 300; }
 
-/* line 69, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ :-ms-input-placeholder { /* IE 10+ */ color: #000000; font-weight: 300; }
+:-ms-input-placeholder { /* IE 10+ */ color: #000000; font-weight: 300; }
 
-/* line 73, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_forms.scss */ :-moz-placeholder { /* Firefox 18- */ color: #000000; font-weight: 300; }
-
-/* line 3, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_pagination.scss */ .pagination .nav-links .page-numbers { padding: 5px 11px; border: 1px solid #ff0000; margin: 2px 0px; display: inline-block; }
-
-/* line 8, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_pagination.scss */ .pagination .nav-links .page-numbers.current { border-color: #000000; }
-
-@media only screen and (min-width: 768px) { /* line 3, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_pagination.scss */ .pagination .nav-links .page-numbers { padding: 0; border: 0; margin: 0; } }
-
-/* line 1, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_search.scss */ .search-form { display: inline-block; position: absolute; top: 0px; right: 15px; border: 1px solid #000000; }
-
-/* line 7, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_search.scss */ .search-form input { background-color: #FFFFFF; width: 188px; height: 35px; padding-left: 10px; border: 0; font-weight: 400; color: #000000; }
-
-/* line 16, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_search.scss */ .search-form label { margin: 0; }
-
-/* line 19, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_search.scss */ .search-form button { display: none; }
-
-@media only screen and (max-width: 767px) { /* line 1, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_search.scss */ .search-form { display: inline-block; position: relative; top: auto; right: auto; border: 1px solid #000000; margin: 10px 0; } }
-
-/* line 3, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-wrapper .swiper-slide { font-size: 18px; /* Center slide text vertically */ display: -webkit-box; display: -ms-flexbox; display: -webkit-flex; display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-box-align: center; -ms-flex-align: center; -webkit-align-items: center; align-items: center; height: auto; background-size: contain; }
-
-/* line 22, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-pagination { bottom: 20px; left: 0; width: 100%; z-index: 6 !important; }
-
-/* line 27, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-pagination .swiper-pagination-bullet { width: 16px; height: 16px; display: inline-block; border-radius: 100%; background: none; opacity: 1; border: 2px solid #fff; margin: 0 4px; }
-
-/* line 36, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-pagination .swiper-pagination-bullet.swiper-pagination-bullet-active { opacity: 1; background: #fff; }
-
-/* line 42, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-button-next, .swiper-container .swiper-button-prev { opacity: 0; width: 100px; height: 500px; background: none; margin-top: -250px; transition: opacity 0.3s ease-in-out; }
-
-/* line 50, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-button-next:after, .swiper-container .swiper-button-prev:after { position: absolute; top: 0; right: 0; bottom: 0; left: 0; font-size: 40px; line-height: 500px; font-family: 'wordpress_dev_theme'; color: #FFFFFF; }
-
-/* line 61, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-button-next:hover, .swiper-container .swiper-button-prev:hover { opacity: 1; }
-
-/* line 64, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-button-next.swiper-button-disabled, .swiper-container .swiper-button-prev.swiper-button-disabled { opacity: 0; }
-
-@media only screen and (max-width: 767px) { /* line 42, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-button-next, .swiper-container .swiper-button-prev { display: none; } }
-
-/* line 72, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-button-next:after { content: "\62"; text-align: right; }
-
-/* line 78, Users/markusgabriel/_dev/wordpress-dev-theme/wp-content/themes/wordpress-dev-theme/sass/modules/_slider.scss */ .swiper-container .swiper-button-prev:after { content: "\61"; text-align: left; }
+:-moz-placeholder { /* Firefox 18- */ color: #000000; font-weight: 300; }
