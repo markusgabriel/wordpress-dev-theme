@@ -1,0 +1,66 @@
+h1, .h1 {
+	font-size: $font-size-xxl;
+	font-weight: 600;
+	margin: 20px 0;
+	line-height: 120%;
+}
+
+h2, .h2 {
+	font-size: $font-size-xxl;
+	font-weight: 300;
+	line-height: 140%;
+	margin: 0 0 20px 0;
+}
+
+h3, .h3 {
+	font-size: $font-size-xl;
+	line-height: $base-line-height;
+	margin: 20px 0px 25px;
+}
+
+h4, .h4 {
+	font-size: $font-size-sm;
+	line-height: $base-line-height;
+	margin: 0 0 10px 0;
+}
+
+h5, .h5 {
+	font-size: $font-size-xs;
+	font-weight: bold;
+	line-height: 140%;
+	margin: 0;
+}
+
+h6, .h6 {
+	font-size: $font-size-xxs;
+	line-height: 180%;
+	margin: 0;
+}
+
+p, li, b, strong, em, td, th {
+	font-size: $text-font-size;
+	line-height: 150%;
+}
+
+b, strong {
+	font-weight: 600;
+}
+
+.font-size-md {
+	font-size: $font-size-md !important;
+	line-height: 140%;
+}
+
+.font-size-lg {
+	font-size: $font-size-lg !important;
+	line-height: 140%;
+}
+
+.font-size-xl {
+	font-size: $font-size-xl !important;
+	line-height: 140%;
+}
+
+.text-color--primary {
+	color: $color-primary;
+}

@@ -1,0 +1,18 @@
+/*!
+Theme Name: Wordpress Dev Theme
+Author: Markus Gabriel - Blackpattern.de
+Author URI: https://blackpattern.de
+Text Domain: wordpress-dev-theme
+Version: 1.4
+*/
+
+// define standards
+@import "font";
+@import "iconfont";
+@import "config";
+@import "defaults";
+
+@import "typography";
+
+@import "modules";
+@import "page-modules";

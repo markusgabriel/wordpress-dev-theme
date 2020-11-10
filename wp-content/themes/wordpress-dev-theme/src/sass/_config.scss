@@ -1,0 +1,54 @@
+$base-font-size: 16px;
+$base-line-height: 1.4em;
+
+$body-font-family: $font-primary;
+$font-smoothing: antialiased;
+
+$font-size-xxl: 2rem;			// 32px
+$font-size-xl: 1.625rem;		// 26px
+$font-size-lg: 1.5rem;			// 24px
+$font-size-md: 1.125rem;		// 18px
+$font-size-sm: 1rem;			// 16px
+$font-size-xs: 0.875rem;		// 14px
+$font-size-xxs: 0.75rem;		// 12px
+
+$font-style-menu: bold 16px/100% $font-primary;
+$font-style-h1: bold 36px/44px $font-primary;
+$font-style-h1-mobile: bold 27px/33px $font-primary;
+$font-style-h2: 400 32px/38px $font-primary;
+$font-style-h2-mobile: 400 25px/30px $font-primary;
+$font-style-h3: 400 36px/44px $font-primary;
+$font-style-h3-mobile: 400 28px/30px $font-primary;
+$font-style-h4: bold 26px/36px $font-primary;
+$font-style-h5: bold 22px/36px $font-primary;
+$font-style-text: 400 16px/26px $font-primary;
+$font-style-button: 400 16px/26px $font-primary;
+
+$color-primary: #ff0000;
+$color-secondary: #0000ff;
+$color-light-grey: #f5f5f5;
+$color-medium-grey: #8f8f8f;
+$color-dark-grey: #262626;
+$color-black: #000000;
+$color-white: #FFFFFF;
+
+$text-font-size: $font-size-sm;
+
+$body-bg: #ffffff;
+$body-font-color: #000000;
+
+$media-tiny: "only screen and (max-width: 575px)";
+$media-small: "only screen and (min-width: 576px) and (max-width: 767px)";
+$media-medium: "only screen and (min-width: 768px) and (max-width: 991px)";
+$media-large: "only screen and (min-width: 992px) and (max-width: 1199px)";
+$media-xlarge: "only screen and (min-width: 1200px) and (max-width: 1439px)";
+$media-xxlarge: "only screen and (min-width: 1440px)";
+
+$media-small-up: "only screen and (min-width: 576px)";
+$media-small-down: "only screen and (max-width: 767px)";
+$media-medium-up: "only screen and (min-width: 768px)";
+$media-medium-down: "only screen and (max-width: 991px)";
+$media-large-up: "only screen and (min-width: 992px)";
+$media-large-down: "only screen and (max-width: 1199px)";
+$media-xlarge-up: "only screen and (min-width: 1200px)";
+$media-xlarge-down: "only screen and (max-width: 1440px)";
