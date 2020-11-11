@@ -95,11 +95,11 @@ a {
   transition: all 0.2s;
 }
 a:link {
-  color: #ff0000;
+  color: var(--color-primary);
   text-decoration: none;
 }
 a:visited {
-  color: #ff0000;
+  color: var(--color-primary);
   text-decoration: none;
 }
 a:hover {
@@ -108,7 +108,7 @@ a:hover {
 }
 
 .text-primary {
-  color: #ff0000;
+  color: var(--color-primary);
 }
 
 ul.styled-unordered-list {
@@ -128,7 +128,7 @@ ul.styled-unordered-list li:before {
   width: 5px;
   height: 5px;
   border-radius: 20px;
-  background-color: #ff0000;
+  background-color: var(--color-primary);
   position: absolute;
   top: 13px;
   left: 0;
@@ -148,7 +148,7 @@ ol.styled-ordered-list > li {
 ol.styled-ordered-list > li::before {
   content: counter(li) ".";
   counter-increment: li;
-  color: #ff0000;
+  color: var(--color-primary);
   position: absolute;
   top: 10px;
   left: 0;
@@ -296,7 +296,7 @@ b, strong {
 }
 
 .text-color--primary {
-  color: #ff0000;
+  color: var(--color-primary);
 }
 
 .btn, .button.is--block, input.is--block[type=submit], .button.is--small, input.is--small[type=submit], .button.is--large, input.is--large[type=submit], .button.is--medium, input.is--medium[type=submit], a.btn {
@@ -309,22 +309,22 @@ b, strong {
 }
 
 .button.is--primary, input.button[type=submit], input[type=submit] {
-  border: 1px solid #ff0000;
+  border: 1px solid var(--color-primary);
   color: #FFFFFF !important;
-  background-color: #ff0000;
+  background-color: var(--color-primary);
 }
 .button.is--primary:hover, input[type=submit]:hover {
-  border: 1px solid #ff0000;
-  background-color: #ff0000;
+  border: 1px solid var(--color-primary);
+  background-color: var(--color-primary);
 }
 .button.is--secondary, input.is--secondary[type=submit] {
-  border: 1px solid #ff0000;
-  color: #ff0000 !important;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary) !important;
   background-color: transparent;
 }
 .button.is--secondary:hover, input.is--secondary[type=submit]:hover {
-  border: 1px solid #ff0000;
-  color: #ff0000 !important;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary) !important;
   background-color: transparent;
 }
 .button.is--black, input.is--black[type=submit] {
@@ -951,7 +951,7 @@ article.comment .commenttext .commenttitle {
   margin-bottom: 20px;
 }
 .press__item-date {
-  background-color: #ff0000;
+  background-color: var(--color-primary);
   color: #FFFFFF;
   font-family: "Times", serif;
   font-size: 1rem;
@@ -983,7 +983,7 @@ article.comment .commenttext .commenttitle {
     align-items: stretch;
   }
   .press__item a:hover > div {
-    background: #ff0000;
+    background: var(--color-primary);
   }
   .press__item a:hover > div * {
     color: #FFFFFF;
