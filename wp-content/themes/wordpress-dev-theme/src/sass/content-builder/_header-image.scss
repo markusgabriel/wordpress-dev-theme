@@ -1,0 +1,17 @@
+.header-image {
+    padding: 0 !important;
+
+    &__inner {
+        @extend .max-width-1440;
+        padding: 0 !important;
+    }
+
+    @media #{$media-tiny} {
+
+        img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+    }
+}

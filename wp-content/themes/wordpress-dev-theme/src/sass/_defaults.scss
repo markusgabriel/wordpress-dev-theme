@@ -108,3 +108,45 @@ iframe {
 	float: right;
 	margin: 0 0 20px 20px;
 }
+
+.max-width-1440 {
+	width: 100%;
+	max-width: $max-content-width;
+	margin: 0 auto;
+	padding: 0 20px;
+
+	@media #{$media-medium-up} {
+		padding: 0 60px;
+	}
+
+	@media #{$media-xxlarge} {
+		padding: 0 80px;
+	}
+}
+
+.max-width-1040 {
+	width: 100%;
+	max-width: 1040px;
+	margin: 0 auto;
+	padding: 0 15px;
+}
+
+.position-absolute {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	bottom: 0;
+}
+
+.bg-color--primary {
+	background-color: var(--color-primary) !important;
+}
+
+.bg-color--primary-dark {
+	background-color: var(--color-primary-dark) !important;
+}
+
+.bg-color--primary-light {
+	background-color: var(--color-primary-light) !important;
+}

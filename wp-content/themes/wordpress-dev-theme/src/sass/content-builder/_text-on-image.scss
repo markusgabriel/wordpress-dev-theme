@@ -1,0 +1,44 @@
+.text-on-image {
+
+    &__inner {
+        position: relative;
+    }
+
+    &__text {
+        @extend .max-width-1440;
+        padding-top: 50px;
+        padding-bottom: 50px;
+        position: relative;
+        z-index: 3;
+
+        &-inner {
+            max-width: 520px;
+
+            h1, h2, h3, h4 {
+                color: $color-white;
+            }
+
+            p {
+                color: $color-white;
+            }
+        }
+    }
+
+    &__image {
+        @extend .position-absolute;
+        z-index: 1;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        &:after {
+            content: "";
+            @extend .position-absolute;
+            z-index: 2;
+            background-color: rgba(0,0,0,0.5);
+        }
+    }
+}

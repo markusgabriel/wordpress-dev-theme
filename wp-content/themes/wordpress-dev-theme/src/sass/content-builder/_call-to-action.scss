@@ -1,0 +1,21 @@
+.call-to-action {
+    padding-top: 0px;
+    padding-bottom: 50px;
+
+    &__inner {
+        @extend .max-width-1440;
+    }
+
+    @media #{$media-small-down} {
+        padding: 25px 0;
+
+        &__inner {
+            padding: 0 25px !important;
+            text-align: center;
+
+            p {
+                text-align: center !important;
+            }
+        }
+    }
+}

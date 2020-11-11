@@ -1,0 +1,122 @@
+.jobs {
+
+    &__inner {
+        @extend .max-width-1440;
+    }
+
+    &__item {
+        margin-bottom: 30px;
+
+        &-head {
+            position: relative;
+            padding: 50px;
+            background-color: var(--color-primary-light);
+            cursor: pointer;
+
+            &-bottom {
+
+                span {
+                    background-color: var(--color-primary);
+                    color: $color-white;
+                    padding: 4px 10px;
+                    font-size: $font-size-xs;
+                    margin-right: 6px;
+                }
+            }
+
+            i {
+                font-size: 20px;
+                color: $color-black;
+                position: absolute;
+                top: 20px;
+                right: 20px;
+
+                &.icon-plus {
+                    transition: .3s ease-in-out;
+                    transform: scale(1);
+
+                    .open & {
+                        transform: scale(0);
+                    }
+                }
+
+                &.icon-minus {
+                    transition: .3s ease-in-out;
+                    transform: scale(0);
+
+                    .open & {
+                        transform: scale(1);
+                    }
+                }
+            }
+        }
+
+        &-body {
+            display: block;
+            background-color: var(--color-primary-light);
+            max-height: 0;
+            overflow: hidden;
+            transition: .3s ease-in-out;
+
+            .open & {
+                max-height: 2000px;
+            }
+
+            &-inner {
+                padding: 25px;
+            }
+
+            ul {
+                margin: 10px 0;
+                padding: 0 0 0 20px;
+
+                li {
+                    font: $font-style-text;
+                }
+            }
+
+            &-contact {
+                max-width: 520px;
+            }
+        }
+    }
+
+    @media #{$media-tiny} {
+
+        &__item {
+
+            &-head {
+                padding: 25px;
+            }
+        }
+    }
+
+    @media #{$media-medium-up} {
+
+        &__item {
+
+            &-head {
+
+                i {
+                    font-size: 30px;
+                    top: 50%;
+                    right: 50px;
+                    margin-top: -15px;
+                }
+            }
+
+            &-body {
+
+                &-top {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    grid-gap: 50px;
+                }
+
+                &-inner {
+                    padding: 0 50px 50px;
+                }
+            }
+        }
+    }
+}

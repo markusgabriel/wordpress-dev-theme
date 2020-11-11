@@ -1,0 +1,17 @@
+.logos {
+
+    &__inner {
+        @extend .max-width-1440;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    @media #{$media-medium-up} {
+
+        &__inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-gap: 25px;
+        }
+    }
+}

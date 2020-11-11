@@ -1,0 +1,96 @@
+.team {
+
+    &__inner {
+        @extend .max-width-1440;
+    }
+
+    &__item {
+        background-color: var(--color-primary-light);
+
+        &-inner {
+            position: relative;
+
+            &-image {
+                position: relative;
+
+                img {
+                    position: relative;
+                    z-index: 1;
+                    display: block;
+                    width: 100%;
+                    height: auto;
+                }
+            }
+
+            &-text {
+                padding: 25px;
+
+                h4 {
+                    font-size: $font-size-md;
+                    margin-bottom: 0px;
+                }
+
+                p {
+                    margin: 5px 0 15px;
+                }
+
+                a {
+                    display: inline-block;
+                    color: $body-font-color;
+                    padding: 5px 0;
+
+                    i {
+                        display: inline-block;
+                        vertical-align: -2px;
+                        width: 25px;
+
+                        &.icon-mail {
+                            font-size: 14px;
+                        }
+
+                        &.icon-phone {
+                            margin: 0 -3px 0 3px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @media #{$media-tiny} {
+        padding: 0 0 40px 25px;
+
+        &__inner {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+
+            > div {
+                flex-shrink: 0;
+                width: 70vw;
+                margin-right: 25px;
+                height: 100%;
+                scroll-snap-align: start;
+            }
+        }
+    }
+
+    @media #{$media-medium-up} {
+
+        &__inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-gap: 25px;
+        }
+
+        &__item {
+
+            &-inner {
+
+
+            }
+        }
+    }
+}

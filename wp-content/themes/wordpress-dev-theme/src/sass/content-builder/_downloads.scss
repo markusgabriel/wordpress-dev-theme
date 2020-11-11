@@ -1,0 +1,34 @@
+.downloads {
+
+    &__inner {
+        @extend .max-width-1440;
+    }
+
+    &__headline {
+        margin-bottom: 50px;
+    }
+
+    &__image {
+        margin-bottom: 25px;
+    }
+
+    &__item {
+        margin-bottom: 50px;
+    }
+
+    &__button {
+
+        a {
+            margin-bottom: 25px;
+        }
+    }
+
+    @media #{$media-medium-up} {
+
+        &__wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-gap: 50px;
+        }
+    }
+}

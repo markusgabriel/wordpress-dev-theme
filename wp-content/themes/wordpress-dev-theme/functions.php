@@ -72,11 +72,12 @@ function wordpress_dev_theme_script_enqueue()
 {
     wp_deregister_script('jquery');
     wp_register_style('wordpressdevtheme-style', get_template_directory_uri() . '/assets/dist/bundle.css', array(), '1.1.0', false);
-    wp_register_script('wordpressdevtheme-script', get_template_directory_uri() . '/assets/dist/bundle.js', array(), '1.0.0',
-        true);
+    wp_register_script('swiper-script', get_template_directory_uri() . '/assets/dist/swiper-bundle.min.js', array(), '6.3.2', true);
+    wp_register_script('wordpressdevtheme-script', get_template_directory_uri() . '/assets/dist/bundle.js', array(), '1.0.0', true);
     wp_register_style('swiper-style', get_template_directory_uri() . '/src/css/swiper-bundle.min.css', array(), '6.3.5');
 
     wp_enqueue_style('wordpressdevtheme-style');
+    wp_enqueue_script('swiper-script');
     wp_enqueue_script('wordpressdevtheme-script');
     wp_enqueue_style('swiper-style');
 }
@@ -207,11 +208,29 @@ add_filter('tiny_mce_before_init', 'my_mce_before_init_insert_formats');
 function cc_mime_types($mimes)
 {
     $mimes['svg'] = 'image/svg+xml';
-
     return $mimes;
 }
-
 add_filter('upload_mimes', 'cc_mime_types');
+
+function kb_ignore_upload_ext($checked, $file, $filename, $mimes){
+
+    if(!$checked['type']){
+        $wp_filetype = wp_check_filetype( $filename, $mimes );
+        $ext = $wp_filetype['ext'];
+        $type = $wp_filetype['type'];
+        $proper_filename = $filename;
+
+        if($type && 0 === strpos($type, 'image/') && $ext !== 'svg'){
+            $ext = $type = false;
+        }
+
+        $checked = compact('ext','type','proper_filename');
+    }
+
+    return $checked;
+}
+
+add_filter('wp_check_filetype_and_ext', 'kb_ignore_upload_ext', 10, 4);
 
 
 // DEACTIVATE ADMIN BAR

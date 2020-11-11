@@ -1,0 +1,57 @@
+.big-slider {
+    padding: 0 !important;
+
+    &__inner {
+        @extend .max-width-1440;
+        padding: 0 !important;
+        position: relative;
+
+        &-image {
+            position: relative;
+            z-index: 1;
+
+            img {
+                display: block;
+                width: 100%;
+                height: auto;
+            }
+        }
+
+        .swiper-pagination {
+            position: absolute;
+            z-index: 2;
+            left: 0;
+            right: 0;
+            bottom: 25px !important;
+            text-align: center;
+
+            &-bullet {
+                width: 15px;
+                height: 15px;
+                margin: 8px;
+                background-color: $color-white;
+                opacity: 1 !important;
+
+                &-active {
+                    background-color: var(--color-primary);
+                }
+            }
+        }
+    }
+
+    @media #{$media-small-down} {
+
+        &__inner {
+            padding: 0 !important;
+        }
+
+        &__image {
+
+            img {
+                width: 100%;
+                height: 400px;
+                object-fit: cover;
+            }
+        }
+    }
+}

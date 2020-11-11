@@ -1,0 +1,54 @@
+.checklist {
+
+    &__inner {
+        @extend .max-width-1040;
+        background-color: $color-light-grey;
+        padding: 40px;
+    }
+
+    &__headline {
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    &__wrapper {
+
+        ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+
+            li {
+                font-weight: bold;
+                line-height: 180%;
+                padding: 10px 30px;
+                position: relative;
+                background-image: url("../img/icon-check.svg");
+                background-size: 17px 13px;
+                background-position: left 0 top 15px;
+                background-repeat: no-repeat;
+            }
+        }
+    }
+
+    @media #{$media-small-down} {
+        padding: 20px !important;
+
+        &__inner {
+            padding: 40px 20px !important;
+        }
+
+        &__item {
+            margin-bottom: 10px;
+        }
+    }
+
+    @media #{$media-medium-up} {
+
+        &__wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 50px;
+        }
+    }
+}

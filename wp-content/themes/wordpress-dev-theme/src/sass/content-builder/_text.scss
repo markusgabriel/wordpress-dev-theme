@@ -1,0 +1,51 @@
+.text-module {
+
+    &__inner {
+        @extend .max-width-1440;
+    }
+
+    ~ .image {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    + .team,
+    + .products,
+    + .testimonial {
+        padding-top: 0 !important;
+    }
+
+    ul {
+        margin: 10px 0;
+        padding: 0 0 0 20px;
+
+        li {
+            font: $font-style-text;
+        }
+    }
+
+    @media #{$media-small-down} {
+        padding: 20px 0;
+
+        * {
+            text-align: left !important;
+        }
+
+        p, li {
+            font-size: $font-size-sm !important;
+        }
+    }
+
+    @media #{$media-medium-up} {
+        padding-top: 50px !important;
+        padding-bottom: 50px !important;
+
+        &.half {
+
+            > div > div {
+                max-width: 60%;
+                margin: 0;
+            }
+        }
+    }
+}

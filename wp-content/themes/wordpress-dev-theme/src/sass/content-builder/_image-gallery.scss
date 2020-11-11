@@ -1,0 +1,26 @@
+.image-gallery {
+
+    &__inner {
+        //@extend .max-width-1440;
+    }
+
+    &__headline {
+        margin-bottom: 30px;
+        @extend .max-width-1440;
+    }
+
+    &__item {
+        //width: auto !important;
+    }
+
+    @media #{$media-medium-up} {
+
+        &__headline {
+            margin-bottom: 50px;
+        }
+
+        &__item {
+            width: auto !important;
+        }
+    }
+}
