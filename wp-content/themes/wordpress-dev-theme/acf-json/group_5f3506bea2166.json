@@ -1,0 +1,238 @@
+{
+    "key": "group_5f3506bea2166",
+    "title": "Design",
+    "fields": [
+        {
+            "key": "field_5f3506c1d7d50",
+            "label": "Logo Header",
+            "name": "logo_header",
+            "type": "image",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "33",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "array",
+            "preview_size": "medium",
+            "library": "all",
+            "min_width": "",
+            "min_height": "",
+            "min_size": "",
+            "max_width": "",
+            "max_height": "",
+            "max_size": "",
+            "mime_types": ""
+        },
+        {
+            "key": "field_5f3506d0d7d51",
+            "label": "Logo Footer",
+            "name": "logo_footer",
+            "type": "image",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "33",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "array",
+            "preview_size": "medium",
+            "library": "all",
+            "min_width": "",
+            "min_height": "",
+            "min_size": "",
+            "max_width": "",
+            "max_height": "",
+            "max_size": "",
+            "mime_types": ""
+        },
+        {
+            "key": "field_5f35366b90ed2",
+            "label": "Browser Icon",
+            "name": "browser_icon",
+            "type": "image",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "34",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "url",
+            "preview_size": "thumbnail",
+            "library": "all",
+            "min_width": "",
+            "min_height": "",
+            "min_size": "",
+            "max_width": "",
+            "max_height": "",
+            "max_size": "",
+            "mime_types": ""
+        },
+        {
+            "key": "field_5f3cda5c0f273",
+            "label": "Logo Header Breite",
+            "name": "logo_header_breite",
+            "type": "number",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "16",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "px",
+            "min": 0,
+            "max": 300,
+            "step": ""
+        },
+        {
+            "key": "field_5f3cda700f274",
+            "label": "Logo Header Höhe",
+            "name": "logo_header_hohe",
+            "type": "number",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "17",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "px",
+            "min": 0,
+            "max": 150,
+            "step": ""
+        },
+        {
+            "key": "field_5f3cda940f275",
+            "label": "Logo Footer Breite",
+            "name": "logo_header_breite",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "16",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "px",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5f3cda9d0f276",
+            "label": "Logo Footer Höhe",
+            "name": "logo_header_hohe",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "17",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "px",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5f3cdab7e1d21",
+            "label": "",
+            "name": "",
+            "type": "message",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "34",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "new_lines": "wpautop",
+            "esc_html": 0
+        },
+        {
+            "key": "field_5f3506dad7d52",
+            "label": "Primärfarbe",
+            "name": "primarfarbe",
+            "type": "color_picker",
+            "instructions": "z.B. Farbe der Buttons",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "33",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "#4AA5BA"
+        },
+        {
+            "key": "field_5f350707d7d53",
+            "label": "Primärfarbe hell",
+            "name": "primarfarbe_hell",
+            "type": "color_picker",
+            "instructions": "z.B. Hintergrundfarben einzelner Module",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "33",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "#EEF4F7"
+        },
+        {
+            "key": "field_5f35073ed7d54",
+            "label": "Primärfarbe dunkel",
+            "name": "primarfarbe_dunkel",
+            "type": "color_picker",
+            "instructions": "z.B. Hintergrundfarbe des Footers und Farbe der Überschriften",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "34",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "#2A6079"
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "options_page",
+                "operator": "==",
+                "value": "general-settings"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "modified": 1622459067
+}
