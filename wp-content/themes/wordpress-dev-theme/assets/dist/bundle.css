@@ -224,12 +224,8 @@ iframe {
   background-color: var(--color-primary) !important;
 }
 
-.bg-color--primary-dark {
-  background-color: var(--color-primary-dark) !important;
-}
-
-.bg-color--primary-light {
-  background-color: var(--color-primary-light) !important;
+.bg-color--secondary {
+  background-color: var(--color-secondary) !important;
 }
 
 h1, .h1 {
@@ -1253,7 +1249,7 @@ article.comment .commenttext .commenttitle {
 }
 
 .testimonial__inner-inner {
-  background-color: var(--color-primary-dark);
+  background-color: var(--color-secondary);
   display: flex;
   flex-direction: column;
 }

@@ -3,9 +3,8 @@
 <head>
 
     <?php
-    $colorprimary = get_field('primarfarbe', 'options');
-    $colorprimarydark = get_field('primarfarbe_dunkel', 'options');
-    $colorprimarylight = get_field('primarfarbe_hell', 'options');
+    $colorprimary = get_field('primary_color', 'options');
+    $colorsecondary = get_field('secondary_color', 'options');
     $logo = get_field('logo_header', 'options');
     ?>
 
@@ -35,27 +34,20 @@
 
         :root {
             --color-primary: <?php echo $colorprimary; ?>;
-            --color-primary-dark: <?php echo $colorprimarydark; ?>;
-            --color-primary-light: <?php echo $colorprimarylight; ?>;
+            --color-secondary: <?php echo $colorsecondary; ?>;
         }
 
         .color--is-primary {
             color: <?php echo $colorprimary; ?> !important;
         }
-        .color--is-primary-dark {
-            color: <?php echo $colorprimarydark; ?> !important;
-        }
-        .color--is-primary-light {
-            color: <?php echo $colorprimarylight; ?> !important;
+        .color--is-secondary {
+            color: <?php echo $colorsecondary; ?> !important;
         }
         .bg-color--is-primary {
             background-color: <?php echo $colorprimary; ?> !important;
         }
-        .bg-color--is-primary-dark {
-            background-color: <?php echo $colorprimarydark; ?> !important;
-        }
-        .bg-color--is-primary-light {
-            background-color: <?php echo $colorprimarylight; ?> !important;
+        .bg-color--is-secondary {
+            background-color: <?php echo $colorsecondary; ?> !important;
         }
     </style>
 
