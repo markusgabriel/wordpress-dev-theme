@@ -26,6 +26,7 @@
     <meta name="msapplication-TileColor" content="<?php echo $colorprimary; ?>">
     <meta name="msapplication-TileImage" content="<?php the_field('browser_icon', 'options'); ?>">
     <meta name="theme-color" content="<?php echo $colorprimary; ?>">
+    <meta name="color-scheme" content="light dark">
     <?php if ( is_singular() && pings_open( get_queried_object() ) ) : ?>
         <link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>">
     <?php endif; ?>
@@ -35,6 +36,9 @@
         :root {
             --color-primary: <?php echo $colorprimary; ?>;
             --color-secondary: <?php echo $colorsecondary; ?>;
+            --swiper-theme-color: <?php echo $colorprimary; ?>;
+            --swiper-navigation-color: <?php echo $colorprimary; ?>;
+            --swiper-pagination-color: <?php echo $colorprimary; ?>;
         }
 
         .color--is-primary {
