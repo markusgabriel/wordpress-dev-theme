@@ -413,6 +413,8 @@ b, strong {
 input[type=text],
 input[type=email],
 input[type=url],
+input[type=number],
+input[type=tel],
 textarea {
   width: 100%;
   border: 0;
