@@ -156,52 +156,117 @@ function fb_mce_editor_buttons($buttons)
     return $buttons;
 }
 
-function my_mce_before_init_insert_formats($init_array)
-{
-    $style_formats               = array(
+function my_mce_before_init_insert_formats( $init_array ) {
+    $style_formats = array(
         array(
-            'title'   => 'Text Primärfarbe',
-            'inline'  => 'span',
-            'classes' => 'text-primary',
-            'wrapper' => false,
+            'title' => 'Text Formatierungen',
+            'items' => array(
+                array(
+                    'title'   => 'Text Stil H1',
+                    'classes' => 'h1',
+                    'selector' => 'h1, h2, h3, h4, a',
+                    'wrapper' => false,
+                ),
+                array(
+                    'title'   => 'Text Stil H2',
+                    'classes' => 'h2',
+                    'selector' => 'h1, h2, h3, h4, a',
+                    'wrapper' => false,
+                ),
+                array(
+                    'title'   => 'Text Stil H3',
+                    'classes' => 'h3',
+                    'selector' => 'h1, h2, h3, h4, a',
+                    'wrapper' => false,
+                ),
+                array(
+                    'title'   => 'Text Stil H4',
+                    'classes' => 'h4',
+                    'selector' => 'h1, h2, h3, h4, a',
+                    'wrapper' => false,
+                ),
+                array(
+                    'title'   => 'Text Medium',
+                    'inline'  => 'span',
+                    'classes' => 'font-size-md',
+                    'wrapper' => false,
+                ),
+                array(
+                    'title'   => 'Text Large',
+                    'inline'  => 'span',
+                    'classes' => 'font-size-lg',
+                    'wrapper' => false,
+                ),
+                array(
+                    'title'   => 'Text XLarge',
+                    'inline'  => 'span',
+                    'classes' => 'font-size-xl',
+                    'wrapper' => false,
+                ),
+                array(
+                    'title'   => 'Secondary Font',
+                    'inline'  => 'span',
+                    'classes' => 'font-secondary',
+                    'wrapper' => false,
+                ),
+            ),
         ),
         array(
-            'title'   => 'Text Medium',
-            'inline'  => 'span',
-            'classes' => 'font-size-md',
-            'wrapper' => false,
+            'title' => 'Farben',
+            'items' => array(
+                array(
+                    'title' => 'Textfarbe Standard',
+                    'inline' => 'span',
+                    'classes' => 'text-color--default'
+                ),
+                array(
+                    'title' => 'Textfarbe Hauptfarbe',
+                    'inline' => 'span',
+                    'classes' => 'text-color--primary'
+                )
+            )
         ),
         array(
-            'title'   => 'Text Large',
-            'inline'  => 'span',
-            'classes' => 'font-size-lg',
-            'wrapper' => false,
+            'title' => 'Buttons und Links',
+            'items' => array(
+                array(
+                    'title'   => 'Button Primary',
+                    'inline'  => 'a',
+                    'classes' => 'button is--primary is--large',
+                    'wrapper' => false,
+                ),
+                array(
+                    'title'   => 'Button Secondary',
+                    'inline'  => 'a',
+                    'classes' => 'button is--secondary is--large',
+                    'wrapper' => false,
+                )
+            )
         ),
         array(
-            'title'   => 'Text XLarge',
-            'inline'  => 'span',
-            'classes' => 'font-size-xl',
-            'wrapper' => false,
-        ),
-        array(
-            'title'   => 'Button',
-            'inline'  => 'a',
-            'classes' => 'button is--primary is--large',
-            'wrapper' => false,
-        ),
-        array(
-            'title'   => 'Button schwarze Outline',
-            'inline'  => 'a',
-            'classes' => 'button is--ghost is--large',
-            'wrapper' => false,
+            'title' => 'Icons',
+            'items' => array(
+                array(
+                    'title' => 'Instagram',
+                    'inline' => 'span',
+                    'classes' => 'icon-instagram',
+                    'wrapper' => false
+                ),
+                array(
+                    'title' => 'Facebook',
+                    'inline' => 'span',
+                    'classes' => 'icon-facebook',
+                    'wrapper' => false
+                ),
+            )
         )
     );
-    $init_array['style_formats'] = json_encode($style_formats);
+    $init_array['style_formats'] = json_encode( $style_formats );
 
     return $init_array;
 }
 
-add_filter('tiny_mce_before_init', 'my_mce_before_init_insert_formats');
+add_filter( 'tiny_mce_before_init', 'my_mce_before_init_insert_formats' );
 
 
 // ALLOW SVG IN MEDIA UPLOAD
