@@ -265,10 +265,10 @@ function my_acf_op_init()
 
 
 // HIDE GUTENBERG EDITOR
-add_action('init', 'remove_guttenberg_from_pages', 10);
-function remove_guttenberg_from_pages()
-{
-    remove_post_type_support('page', 'editor');
+add_action( 'init', 'remove_guttenberg_from_pages', 10 );
+function remove_guttenberg_from_pages() {
+    remove_post_type_support( 'page', 'editor' );
+    remove_post_type_support( 'post', 'editor' );
 }
 
 
