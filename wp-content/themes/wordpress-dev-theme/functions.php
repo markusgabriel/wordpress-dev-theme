@@ -343,3 +343,85 @@ function hide_menu() {
 }
 
 add_action('admin_menu', 'hide_menu', 10);
+
+
+// WOOCOMMERCE
+/*
+function mytheme_add_woocommerce_support() {
+    add_theme_support( 'woocommerce' );
+    add_theme_support( 'wc-product-gallery-zoom' );
+    add_theme_support( 'wc-product-gallery-lightbox' );
+    add_theme_support( 'wc-product-gallery-slider' );
+    add_theme_support( 'woocommerce', array(
+        'thumbnail_image_width' => 350,
+        'single_image_width' => 555,
+    ) );
+}
+add_action( 'after_setup_theme', 'mytheme_add_woocommerce_support' );
+
+require_once(get_stylesheet_directory() . '/includes/wc-template-functions.php');
+require_once(get_stylesheet_directory() . '/includes/wc-template-hooks.php');
+
+// DEACTIVATE WOOCOMMERCE STYLESHEETS
+add_filter( 'woocommerce_enqueue_styles', '__return_empty_array' );
+
+add_action( 'wp', 'tu_disable_wc_lightbox', 20 );
+function tu_disable_wc_lightbox() {
+    remove_theme_support( 'wc-product-gallery-zoom');
+    remove_theme_support( 'wc-product-gallery-lightbox');
+}
+
+
+add_action( 'get_header', 'sk_conditionally_remove_wc_assets' );
+function sk_conditionally_remove_wc_assets() {
+
+    // if WooCommerce is not active, abort.
+    if ( ! class_exists( 'WooCommerce' ) ) {
+        return;
+    }
+
+    // if this is a WooCommerce related page, abort.
+    if ( is_woocommerce() || is_cart() || is_checkout() || is_page( array( 'my-account' ) ) ) {
+        return;
+    }
+
+    remove_action( 'wp_enqueue_scripts', [ WC_Frontend_Scripts::class, 'load_scripts' ] );
+    remove_action( 'wp_print_scripts', [ WC_Frontend_Scripts::class, 'localize_printed_scripts' ], 5 );
+    remove_action( 'wp_print_footer_scripts', [ WC_Frontend_Scripts::class, 'localize_printed_scripts' ], 5 );
+
+}
+
+
+add_filter( 'woocommerce_default_address_fields' , 'bbloomer_rename_address_placeholders_checkout', 9999 );
+
+function bbloomer_rename_address_placeholders_checkout( $address_fields ) {
+    $address_fields['address_1']['label'] = 'Straße & Hausnummer';
+    $address_fields['address_1']['placeholder'] = 'Straße';
+    $address_fields['address_2']['label'] = 'Hausnummer';
+    $address_fields['address_2']['placeholder'] = 'Hausnummer';
+    return $address_fields;
+}
+
+
+//Remove Gutenberg Block Library CSS from loading on the frontend
+function smartwp_remove_wp_block_library_css()
+{
+    wp_deregister_style('wc-block-vendors-style-css');
+    wp_deregister_style('wp-block-library');
+    wp_deregister_style('wp-block-library-theme');
+    wp_deregister_style('wc-blocks-style-css');
+    wp_dequeue_style('wp-block-library');
+    wp_dequeue_style('wp-block-library-theme');
+    wp_dequeue_style('wc-block-vendors-style-css');
+    wp_dequeue_style('wc-blocks-style-css'); // Remove WooCommerce block CSS
+}
+
+add_action('wp_enqueue_scripts', 'smartwp_remove_wp_block_library_css', 100);
+
+
+function ca_deregister_woocommerce_block_styles() {
+    wp_deregister_style( 'wc-blocks-style' );
+    wp_dequeue_style( 'wc-blocks-style' );
+}
+add_action( 'enqueue_block_assets', 'ca_deregister_woocommerce_block_styles' );
+*/
