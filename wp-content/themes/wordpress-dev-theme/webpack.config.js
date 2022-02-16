@@ -2,8 +2,6 @@
 const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-const build = path.resolve(__dirname, './assets/dist');
-
 // This is main configuration object.
 // Here you write different options and tell Webpack what to do
 module.exports = {
@@ -14,8 +12,10 @@ module.exports = {
     // Path and filename of your result bundle.
     // Webpack will bundle all JavaScript into this file
     output: {
-        path: build,
-        filename: 'bundle.js'
+        path: path.resolve(__dirname, 'assets'),
+        publicPath: '/assets/',
+        filename: 'bundle.js',
+        hashFunction: "xxhash64"
     },
 
     module: {
@@ -42,7 +42,10 @@ module.exports = {
                         // After all CSS loaders we use plugin to do his work.
                         // It gets all transformed CSS and extracts it into separate
                         // single bundled file
-                        loader: MiniCssExtractPlugin.loader
+                        loader: MiniCssExtractPlugin.loader,
+                        options: {
+                            publicPath: './',
+                        },
                     },
                     {
                         // This loader resolves url() and @imports inside CSS
@@ -50,7 +53,16 @@ module.exports = {
                     },
                     {
                         // Then we apply postCSS fixes like autoprefixer and minifying
-                        loader: "postcss-loader"
+                        loader: "postcss-loader",
+                        options: {
+                            postcssOptions: {
+                                plugins: [
+                                    [
+                                        "postcss-preset-env"
+                                    ],
+                                ],
+                            },
+                        },
                     },
                     {
                         // First we transform SASS to standard CSS
@@ -64,41 +76,26 @@ module.exports = {
             {
                 // Now we apply rule for images
                 test: /\.(png|jpe?g|gif|svg)$/,
-                use: [
-                    {
-                        // Using file-loader for these files
-                        loader: "file-loader",
-
-                        // In options we can set different things like format
-                        // and directory to save
-                        options: {
-                            outputPath: '../img'
-                        }
-                    }
-                ]
+                type: 'asset/resource',
+                generator: {
+                    filename: 'img/[name][ext]',
+                },
             },
             {
-                // Apply rule for fonts files
-                test: /\.(woff|woff2|ttf|otf|eot)$/,
-                use: [
-                    {
-                        // Using file-loader too
-                        loader: "file-loader",
-                        options: {
-                            outputPath: '../fonts'
-                        }
-                    }
-                ]
+                test: /\.(woff(2)?|ttf|eot)$/,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'fonts/[name][ext]',
+                },
             }
         ]
     },
 
     plugins: [
 
-        new MiniCssExtractPlugin({
-            path: build,
-            filename: "bundle.css"
-        })
+        new MiniCssExtractPlugin(
+            {filename: 'bundle.css'}
+        )
 
     ],
 
@@ -106,7 +103,7 @@ module.exports = {
     // Depending on mode Webpack will apply different things
     // on final bundle. For now we don't need production's JavaScript
     // minifying and other thing so let's set mode to development
-    mode: 'development',
+    mode: 'production',
 
     watch: true,
 };
