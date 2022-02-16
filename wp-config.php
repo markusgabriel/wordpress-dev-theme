@@ -64,7 +64,31 @@ define('NONCE_SALT',       'Oj5wLz9cu7g0XA4k3KnksMSrMzllY5gOjsErN2xu8WGpwcXkj/ir
 $table_prefix = 'wp_';
 
 
-
+/**
+ * Set the following constants in wp-config.php
+ * These should be added somewhere BEFORE the
+ * constant ABSPATH is defined.
+ *
+ * Make sure you know from your email host what your specific connection
+ * parameters are. Common defaults are given below, but if they are not
+ * what your host requires, you won't be able to connect. Each constant
+ * is noted with a comment identifying what connection parameter it is,
+ * but make sure you're using the correct value - check with your
+ * email host to confirm specific requirements. (Also confirm that your
+ * host allows remote connections in the first place.)
+ *
+ * For instructions on the use of this script, see:
+ * https://butlerblog.com/easy-smtp-email-wordpress-wp_mail/
+ */
+define( 'SMTP_USER',   'noreply@blackpattern.de' );    // Username to use for SMTP authentication
+define( 'SMTP_PASS',   'R@MjPeo2MY@V' );       // Password to use for SMTP authentication
+define( 'SMTP_HOST',   'smtps.udag.de' );    // The hostname of the mail server
+define( 'SMTP_FROM',   'noreply@blackpattern.de' ); // SMTP From email address
+define( 'SMTP_NAME',   'Blackpattern Wordpress' );    // SMTP From name
+define( 'SMTP_PORT',   '465' );                  // SMTP port number - likely to be 25, 465 or 587
+define( 'SMTP_SECURE', 'tls' );                 // Encryption system to use - ssl or tls
+define( 'SMTP_AUTH',    true );                 // Use SMTP authentication (true|false)
+define( 'SMTP_DEBUG',   0 );
 
 /* That's all, stop editing! Happy publishing. */
 
