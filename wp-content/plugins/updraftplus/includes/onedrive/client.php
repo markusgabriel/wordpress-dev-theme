@@ -489,6 +489,62 @@ class Client {
 	}
 
 	/**
+	 * Performs a call to the OneDrive API using the DELETE method.
+	 *
+	 * @param (string) $path - The path of the API call (eg. me/skydrive).
+	 * @param  (array) $objectIdArray - An array of unique IDs of the objects to delete.
+	 */
+	public function apiDeleteMulti($path, $objectIdArray) {
+
+		$multi_curl = curl_multi_init();
+		$curl_objects = array();
+
+		foreach($objectIdArray as $id) {
+			$current_path = $path . $id;
+			$url = $this->api_url . $current_path;
+
+			$curl = $this->_createCurl($current_path);
+
+			curl_setopt_array($curl, array(
+				CURLOPT_URL           => $url,
+				CURLOPT_CUSTOMREQUEST => 'DELETE',
+				CURLOPT_HTTPHEADER	=> array(
+					'Authorization: Bearer ' . $this->_state->token->data->access_token
+				)
+			));
+			curl_multi_add_handle($multi_curl, $curl);
+			$curl_objects[] = $curl;
+		}
+
+		$active = null;
+
+		do {
+			$status = curl_multi_exec($multi_curl, $active);
+			if ($active) {
+				// Wait a short time for more activity
+				curl_multi_select($multi_curl);
+			}
+		} while ($active && $status == CURLM_OK);
+
+		$response_array = array();
+
+		foreach ($curl_objects as $curl_object) {
+			$response = curl_multi_getcontent($curl_object);
+			// If empty then it's a success other wise we have an error array
+			if (empty($response)) {
+				$response_array[] = 'success';
+			} else {
+				$response_array[] = json_decode($response, true);
+			}
+			curl_multi_remove_handle($multi_curl, $curl_object);
+		}
+
+		curl_multi_close($multi_curl);
+
+		return $response_array;
+	}
+
+	/**
 	 * Performs a call to the OneDrive API using the MOVE method.
 	 *
 	 * @param  (string) $path - The path of the API call (eg. me/skydrive).
@@ -815,6 +871,18 @@ class Client {
 	public function deleteObject($objectId) {
 		$objectId = $objectId;
 		$this->apiDelete($this->route_prefix.'drive/items/'.$objectId);
+	}
+
+	/**
+	 * Deletes an array of objects in the current OneDrive account.
+	 *
+	 * @param  (array) $objectIdArray - An array of unique IDs of the objects to delete.
+	 * 
+	 * @return array - returns an array of responses
+	 */
+	public function deleteObjectMulti($objectIdArray) {
+		if (!is_array($objectIdArray)) return;
+		return $this->apiDeleteMulti($this->route_prefix.'drive/items/', $objectIdArray);
 	}
 
 	/**

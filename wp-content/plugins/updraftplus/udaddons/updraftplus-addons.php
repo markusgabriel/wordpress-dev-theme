@@ -24,7 +24,9 @@ define('UDADDONS2_PAGESLUG', 'updraftplus');
 
 $udaddons2_mothership = (defined('UPDRAFTPLUS_ADDONS_SSL') && !UPDRAFTPLUS_ADDONS_SSL) ? 'http://' : 'https://';
 
-$udaddons2_mothership .= (defined('UDADDONS2_TEST_MOTHERSHIP') && defined('UPDRAFTPLUS_ADDONS_TESTING') && UPDRAFTPLUS_ADDONS_TESTING && isset($_SERVER['SERVER_NAME']) && 'localhost' == $_SERVER['SERVER_NAME']) ? UDADDONS2_TEST_MOTHERSHIP : 'updraftplus.com';
+$udaddons2_mothership .= defined('UDADDONS2_TEST_MOTHERSHIP') ? UDADDONS2_TEST_MOTHERSHIP : 'updraftplus.com';
+
+global $updraftplus_addons2; // Need to explicitly globalise the variable or WP-CLI won't recognise it https://github.com/wp-cli/wp-cli/issues/4019#issuecomment-297410839
 
 $updraftplus_addons2 = new UpdraftPlusAddons2('updraftplus', $udaddons2_mothership);
 
@@ -60,6 +62,10 @@ class UpdraftPlusAddons2 {
 		$this->slug = $slug;
 		$this->url = $url;
 
+		// Hide unwanted/user-hostile JetPack promotions, which cause genuine directory search results to be de-prioritised by default (if you use any of JetPack's 45 modules, then it promotes things from the others to the top of search results): https://wptavern.com/jetpack-7-1-adds-feature-suggestions-to-plugin-search-results. If using one JetPack module really does mean that you now automatically prefer all the others, then remove these lines, or add higher-priority filters to add them back.
+		add_filter('jetpack_show_promotions', '__return_false', 20);
+		add_filter('jetpack_just_in_time_msgs', '__return_false', 20);
+		
 		// This needs to exact match PluginUpdateChecker's view
 		$this->plugin_file = plugin_basename($this->slug.'/'.$this->slug.'.php');
 
@@ -82,18 +88,19 @@ class UpdraftPlusAddons2 {
 
 			include_once(UPDRAFTPLUS_DIR.'/vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php');
 
-			$options = $this->get_option(UDADDONS2_SLUG.'_options');
-			$email = isset($options['email']) ? $options['email'] : '';
-			if ($email) {
+			add_filter('puc_check_now-'.$this->slug, array($this, 'puc_check_now'), 10, 3);
+			add_filter('puc_retain_fields-'.$this->slug, array($this, 'puc_retain_fields'));
+			add_filter('puc_request_info_options-'.$this->slug, array($this, 'puc_request_info_options'));
+			// Run after the PluginUpdateChecker has done its stuff
+			add_filter('site_transient_update_plugins', array($this, 'possibly_inject_translations'), 11);
+			// If https does not work, then try http
 
-				add_filter('puc_check_now-'.$this->slug, array($this, 'puc_check_now'), 10, 3);
-				add_filter('puc_retain_fields-'.$this->slug, array($this, 'puc_retain_fields'));
-				add_filter('puc_request_info_options-'.$this->slug, array($this, 'puc_request_info_options'));
-				// Run after the PluginUpdateChecker has done its stuff
-				add_filter('site_transient_update_plugins', array($this, 'possibly_inject_translations'), 11);
-				// If https does not work, then try http
-
-				$plug_updatechecker = Puc_v4_Factory::buildUpdateChecker($this->url."/plugin-info/", WP_PLUGIN_DIR.'/'.$this->slug.'/'.$this->slug.'.php', $this->slug, 24);
+			$plug_updatechecker = Puc_v4_Factory::buildUpdateChecker($this->url."/plugin-info/", WP_PLUGIN_DIR.'/'.$this->slug.'/'.$this->slug.'.php', $this->slug, 24);
+			
+			// The null case is seen in HS#36382
+			if (null === $plug_updatechecker) {
+				error_log("UpdraftPlus: Puc_v4_Factory::buildUpdateChecker() return a null object");
+			} else {
 				$plug_updatechecker->addQueryArgFilter(array($this, 'updater_queryargs_plugin'));
 				if ($this->debug) $plug_updatechecker->debugMode = true;
 				
@@ -101,6 +108,44 @@ class UpdraftPlusAddons2 {
 				
 				$this->plug_updatechecker = $plug_updatechecker;
 			}
+
+			$this->move_updraftplus_update_cron();
+		}
+	}
+
+	/**
+	 * This function is used to redistribute update check times; it is a control to help spread server load
+	 *
+	 * @return void
+	 */
+	private function move_updraftplus_update_cron() {
+
+		$cron_move_date = 1607558400; // 2020-12-10 00:00
+		$cleanup_date = 1607644800; // 2020-12-11 00:00
+		$option_name = 'updraftplus_move_update_cron_dec20';
+		
+		$time_now = time();
+		$start_of_today = $time_now - ($time_now % 86400);
+
+		if ($start_of_today > $cleanup_date + 172800) return;
+	
+		$moved_cron = get_site_option($option_name);
+
+		if ($cron_move_date == $start_of_today && !$moved_cron) {
+			$timestamp = wp_next_scheduled('puc_cron_check_updates-updraftplus');
+			$begintime1 = $cron_move_date + 3600 * 9; // 09:00
+			$endtime1 = $begintime1 + 3600 * 12;
+			// $begintime2 = 1588953600; // 2020-05-08 16:00
+			// $endtime2 = $begintime2 + 7 * 3600;
+
+			if ($timestamp >= $begintime1 && $timestamp <= $endtime1) {
+				wp_clear_scheduled_hook('puc_cron_check_updates-updraftplus');
+				wp_schedule_event($timestamp + 13 * 3600, 'daily', 'puc_cron_check_updates-updraftplus');
+				$this->update_option($option_name, true);
+			}
+			
+		} elseif ($moved_cron && $start_of_today >= $cleanup_date) {
+			delete_site_option($option_name);
 		}
 	}
 
@@ -173,7 +218,6 @@ class UpdraftPlusAddons2 {
 	}
 
 	public function updraftplus_restored_db_is_migration() {
-		global $wpdb;
 		$option = UDADDONS2_SLUG.'_siteid';
 		if (!empty($this->saved_site_id)) {
 			global $updraftplus;
@@ -191,7 +235,7 @@ class UpdraftPlusAddons2 {
 	 * @return Array - list after filtering
 	 */
 	public function puc_retain_fields($fields) {
-		$retain_these = array('x-spm-yourversion-tested', 'x-spm-yourversion-tested', 'x-spm-expiry', 'translations');
+		$retain_these = array('x-spm-yourversion-tested', 'x-spm-support-expiry', 'x-spm-expiry', 'x-spm-meta', 'translations', 'x-spm-subscription-active');
 		foreach ($retain_these as $retain) {
 			if (!in_array($retain, $fields)) $fields[] = $retain;
 		}
@@ -209,8 +253,11 @@ class UpdraftPlusAddons2 {
 		}
 	}
 
+	/**
+	 * Runs upon the WP action admin_menu or network_admin_menu
+	 */
 	public function admin_menu() {
-		global $pagenow;
+		global $pagenow, $updraftplus;
 
 		// Do we want to display a notice about the upcoming or past expiry of their UpdraftPlus subscription?
 		if (!empty($this->plug_updatechecker) && !empty($this->plug_updatechecker->optionName) && current_user_can('update_plugins')) {
@@ -230,6 +277,10 @@ class UpdraftPlusAddons2 {
 		$oval = is_object($this->plug_updatechecker) ? get_site_option($this->plug_updatechecker->optionName, null) : null;
 		$updateskey = 'x-spm-expiry';
 		$supportkey = 'x-spm-support-expiry';
+		$metakey = 'x-spm-meta';
+		$subscription_activekey = 'x-spm-subscription-active';
+		
+		$meta_info = (is_object($oval) && !empty($oval->update) && is_object($oval->update) && !empty($oval->update->$metakey)) ? (array) json_decode($oval->update->$metakey, true) : array();
 
 		$yourversionkey = 'x-spm-yourversion-tested';
 
@@ -244,8 +295,7 @@ class UpdraftPlusAddons2 {
 				fclose($fp);
 			}
 
-			global $wp_version;
-			include(ABSPATH.WPINC.'/version.php');
+			$wp_version = $updraftplus->get_wordpress_version();
 			$compare_wp_version = (preg_match('/^(\d+\.\d+)\..*$/', $wp_version, $wmatches)) ? $wmatches[1] : $wp_version;
 			$compare_tested_version = $oval->update->$yourversionkey;
 			if (!empty($readme_says) && version_compare($readme_says, $compare_tested_version, '>')) $compare_tested_version = $readme_says;
@@ -257,15 +307,26 @@ class UpdraftPlusAddons2 {
 		if (!empty($do_expiry_check) && is_object($oval) && !empty($oval->update) && is_object($oval->update) && !empty($oval->update->$updateskey)) {
 			if (preg_match('/(^|)expired_?(\d+)?(,|$)/', $oval->update->$updateskey, $matches)) {
 				if (empty($matches[2])) {
-					$this->admin_notices['updatesexpired'] = __('Your paid access to UpdraftPlus updates for this site has expired. You will no longer receive updates to UpdraftPlus.', 'updraftplus').' <a href="https://updraftplus.com/renewing-updraftplus-purchase/">'.__('To regain access to updates (including future features and compatibility with future WordPress releases) and support, please renew.', 'updraftplus').'</a>'.$dismiss;
+					$message = __('Your paid access to UpdraftPlus updates for this site has expired. You will no longer receive updates to UpdraftPlus.', 'updraftplus').' <a href="https://updraftplus.com/renewing-updraftplus-purchase/">'.__('To regain access to updates (including future features and compatibility with future WordPress releases) and support, please renew.', 'updraftplus').'</a>';
+					if ($updraftplus->have_addons > 14 && !empty($meta_info['indirect'])) {
+						$message .= ' <br>'.sprintf(__('If you have already renewed, then you need to allocate a licence to this site - %s', 'updraftplus'), '<a href="'.UpdraftPlus_Options::admin_page().'?page=updraftplus&tab=addons">'.__('go here', 'updraftplus').'</a>');
+					}
+					$this->admin_notices['updatesexpired'] = $message.$dismiss;
 				} else {
 					$this->admin_notices['updatesexpired'] = sprintf(__('Your paid access to UpdraftPlus updates for %s add-ons on this site has expired.', 'updraftplus'), $matches[2]).' <a href="https://updraftplus.com/renewing-updraftplus-purchase/">'.__('To regain access to updates (including future features and compatibility with future WordPress releases) and support, please renew.', 'updraftplus').'</a>'.$dismiss;
 				}
 			}
-			if (preg_match('/(^|,)soonpartial_(\d+)_(\d+)($|,)/', $oval->update->$updateskey, $matches)) {
-				$this->admin_notices['updatesexpiringsoon'] = sprintf(__('Your paid access to UpdraftPlus updates for %s of the %s add-ons on this site will soon expire.', 'updraftplus'), $matches[2], $matches[3]).' <a href="https://updraftplus.com/renewing-updraftplus-purchase/">'.__('To retain your access, and maintain access to updates (including future features and compatibility with future WordPress releases) and support, please renew.', 'updraftplus').'</a>'.$dismiss;
-			} elseif (preg_match('/(^|,)soon($|,)/', $oval->update->$updateskey)) {
-				$this->admin_notices['updatesexpiringsoon'] = __('Your paid access to UpdraftPlus updates for this site will soon expire.', 'updraftplus').' <a href="https://updraftplus.com/renewing-updraftplus-purchase/">'.__('To retain your access, and maintain access to updates (including future features and compatibility with future WordPress releases) and support, please renew.', 'updraftplus').'</a>'.$dismiss;
+			$subscription_status = apply_filters('udmupdater_subscription_active', isset($oval->update->$subscription_activekey) ? $oval->update->$subscription_activekey : false);
+			if (empty($subscription_status)) {
+				if (preg_match('/(^|,)soonpartial_(\d+)_(\d+)($|,)/', $oval->update->$updateskey, $matches)) {
+					$this->admin_notices['updatesexpiringsoon'] = sprintf(__('Your paid access to UpdraftPlus updates for %s of the %s add-ons on this site will soon expire.', 'updraftplus'), $matches[2], $matches[3]).' <a href="https://updraftplus.com/renewing-updraftplus-purchase/">'.__('To retain your access, and maintain access to updates (including future features and compatibility with future WordPress releases) and support, please renew.', 'updraftplus').'</a>'.$dismiss;
+				} elseif (preg_match('/(^|,)soon($|,)/', $oval->update->$updateskey)) {
+					$message = __('Your paid access to UpdraftPlus updates for this site will soon expire.', 'updraftplus').' <a href="https://updraftplus.com/renewing-updraftplus-purchase/">'.__('To retain your access, and maintain access to updates (including future features and compatibility with future WordPress releases) and support, please renew.', 'updraftplus').'</a>';
+					if ($updraftplus->have_addons > 14 && !empty($meta_info['indirect'])) {
+						$message .= ' <br>'.sprintf(__('If you have already renewed, then you need to allocate a licence to this site - %s', 'updraftplus'), '<a href="'.UpdraftPlus_Options::admin_page().'?page=updraftplus&tab=addons">'.__('go here', 'updraftplus').'</a>');
+					}
+					$this->admin_notices['updatesexpiringsoon'] = $message.$dismiss;
+				}
 			}
 		} elseif (!empty($do_expiry_check) && is_object($oval) && !empty($oval->update) && is_object($oval->update) && !empty($oval->update->$supportkey)) {
 			if ('expired' == $oval->update->$supportkey) {
@@ -337,6 +398,14 @@ class UpdraftPlusAddons2 {
 		return $val;
 	}
 
+	/**
+	 * Remove and update a site option
+	 *
+	 * @param String $option
+	 * @param Mixed	 $val
+	 *
+	 * @return Boolean - true if the option was successfully set; otherwise false
+	 */
 	public function update_option($option, $val) {
 		delete_site_option($option);
 		return update_site_option($option, $val);
@@ -372,19 +441,27 @@ class UpdraftPlusAddons2 {
 	 * @param  string $checkperiod Period to check
 	 * @return boolean
 	 */
-	public function puc_check_now($shouldcheck, $lastcheck, $checkperiod) {
+	public function puc_check_now($shouldcheck, $lastcheck, $checkperiod) {// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Filter use
 	
 		// Skip checks immediately after a WP upgrade. This action has existed since WP 4.4. Since we're just trying to reduce server load spikes when WP core automatic security upgrades happen, that is adequate.
 		if (did_action('pre_auto_update')) return false;
 	
 		global $wp_current_filter;
 		
-		// Return without any changes if...
+		/*
+		 * Return without any changes if no check was going to happen anyway; or, if it was, if any of these conditions match:
+		 * - We have no checker object
+		 * - There hasn't been a last check
+		 * - We're on the update-core.php page
+		 * - We're not in a cron context
+		 */
 		if (true !== $shouldcheck || empty($this->plug_updatechecker) || 0 == $lastcheck || (is_array($wp_current_filter) && in_array('load-update-core.php', $wp_current_filter)) || !defined('DOING_CRON')) return $shouldcheck;
 		
-		// i.e. return true (i.e. do check) if no update is available
+		// i.e. return unchanged result (i.e. do check if you were going to) if no update is available
 		if (null === $this->plug_updatechecker->getUpdate()) return $shouldcheck;
 
+		// So, now we know an update is available. In this situation, we reduce checks.
+		
 		$days_since_check = max(round((time() - $lastcheck)/86400), 1);
 		if ($days_since_check > 10000) return true;
 
@@ -440,7 +517,7 @@ class UpdraftPlusAddons2 {
 						'body' => $post_array
 					)
 				);
-				
+
 				if (!is_wp_error($result) && isset($result['body'])) $response = json_decode($result['body']);
 			}
 		}
@@ -449,26 +526,89 @@ class UpdraftPlusAddons2 {
 
 	}
 
+	/**
+	 * Called by the WP action wp_ajax_udaddons_claimaddon
+	 */
 	public function ajax_udaddons_claimaddon() {
 
 		$nonce = empty($_REQUEST['nonce']) ? '' : $_REQUEST['nonce'];
 		if (!wp_verify_nonce($nonce, 'udmanager-nonce') || empty($_POST['key'])) die('Security check');
 
-		$result = $this->claim_addon($_POST['key']);
+		$key = $_POST['key'];
+		
+		$result = $this->claim_addon($key);
  
 		if (is_wp_error($result)) {
 			echo __('Errors occurred:', 'updraftplus').'<br>';
 			show_message($result);
 		} elseif (is_object($result)) {
 		
+			if ((!defined('UPDRAFTPLUS_ADDONS_QUICK_INSTALL') || !UPDRAFTPLUS_ADDONS_QUICK_INSTALL) && !empty($result->data->files)) {
+			
+				$all_addons = array();
+				
+				if (is_dir(UPDRAFTPLUS_DIR.'/addons') && $dir_handle = opendir(UPDRAFTPLUS_DIR.'/addons')) {
+					while (false !== ($e = readdir($dir_handle))) {
+						if (is_file(UPDRAFTPLUS_DIR.'/addons/'.$e) && preg_match('/\.php$/', $e)) {
+							$all_addons[] = $e;
+						}
+					}
+				}
+				
+				foreach ($result->data->files as $file => $data) {
+					if (false !== strpos($file, '..')) continue;
+					if (preg_match('#^addons/(.*\.php)$#', $file, $matches)) {
+						$all_addons[] = $matches[1];
+					}
+				}
+			
+				$all_addons = array_unique($all_addons);
+				
+				$new_sub_version = ('all' == $key || count($all_addons) > 15 ) ? count($all_addons) + 1 : count($all_addons);
+				
+				foreach ($result->data->files as $file => $data) {
+				
+					if (false !== strpos($file, '..')) continue;
+				
+					if ('updraftplus.php' != $file && !preg_match('#^addons/.*\.php$#', $file)) continue;
+
+					if (false == ($decompressed = gzuncompress(base64_decode($data)))) continue;
+					
+					// Check the basic sanity of the incoming data
+					$start = substr($decompressed, 0, 128);
+					
+					if ('updraftplus.php' == $file && false === strpos($start, 'Plugin Name: UpdraftPlus')) continue;
+					
+					if (preg_match('#^addons/.*\.php$#', $file) && false === strpos($start, 'UpdraftPlus Addon:')) continue;
+					
+					if ('updraftplus.php' == $file) $decompressed = preg_replace('/\nVersion: \d+\.(\d+\.\d+)/', "\n".'Version: 2.$1.'.$new_sub_version, $decompressed, 1);
+
+					if (false == file_put_contents(UPDRAFTPLUS_DIR.'/'.$file, $decompressed)) {
+						$addons_written = false;
+						break;
+					}
+					
+					$addons_written = true;
+				}
+			}
+		
 			$result->check_updates = true;
+			
+			if (!empty($addons_written)) $result->addons_written = true;
 		
 			// If the results included update information, then store that
-			if (!empty($result->data) && !empty($result->data->plugin_info)) {
-			
-				if (class_exists('Puc_v4p3_Plugin_Update') && !empty($this->plug_updatechecker)) {
+			if (!empty($result->data) && !empty($result->data->plugin_info) && !empty($this->plug_updatechecker)) {
 
-					$plugin_update = Puc_v4p3_Plugin_Update::fromObject($result->data->plugin_info);
+				// e.g. Puc_v4p9_Plugin_UpdateChecker
+				$checker_class = get_class($this->plug_updatechecker);
+				
+				// Hopefully take off the 'Checker'. The setUpdate() call below wants a compatible version.
+				$plugin_update_class = substr($checker_class, 0, strlen($checker_class)-7);
+				
+				if (class_exists($plugin_update_class) && is_callable(array($plugin_update_class, 'fromObject'))) {
+				
+					// $plugin_update_class::fromObject() is invalid syntax on PHP 5.2
+					$plugin_update = call_user_func(array($plugin_update_class, 'fromObject'), $result->data->plugin_info);
 
 					$update_checker = $this->plug_updatechecker;
 					
@@ -542,14 +682,14 @@ class UpdraftPlusAddons2 {
 					if (isset($tinfo['PO-Revision-Date'])) {
 						$found_existing = strtotime($tinfo['PO-Revision-Date']);
 					}
-					$sinfo['trans'][$locale]['d'] = $found_existing;
+					$site_info['trans'][$locale]['d'] = $found_existing;
 				}
 			}
 		}
 		
 		if (is_a($updraftplus, 'UpdraftPlus') && isset($updraftplus->version)) {
-			$sinfo['ud'] = $updraftplus->version;
-			if (class_exists('UpdraftPlus_Options')) $sinfo['service'] = json_encode(UpdraftPlus_Options::get_updraft_option('updraft_service'));
+			$site_info['ud'] = $updraftplus->version;
+			if (class_exists('UpdraftPlus_Options')) $site_info['service'] = json_encode(UpdraftPlus_Options::get_updraft_option('updraft_service'));
 		}
 		
 		return $site_info;
@@ -602,7 +742,7 @@ class UpdraftPlusAddons2 {
 			$shopurl = "";
 			$latestchange = null;
 			$lines_read = 0;
-			while ($lines_read<10 && $line = @fgets($f)) {
+			while ($lines_read<10 && $line = @fgets($f)) {// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 				if ("" == $key && preg_match('/Addon: ([^:]+):(.*)$/i', $line, $lmatch)) {
 					$key = $lmatch[1];
 					$name = $lmatch[2];
@@ -630,7 +770,7 @@ class UpdraftPlusAddons2 {
 			'noadverts' => array(
 				'name' => 'Remove adverts',
 				'description' => 'Removes all adverts from the control panel and emails',
-				'shopurl' => '/shop/no-adverts/'
+				'shopurl' => '/shop/updraftplus-premium/'
 			),
 			'all' => array(
 				'name' => 'All addons',
@@ -640,37 +780,37 @@ class UpdraftPlusAddons2 {
 			'multisite' => array(
 				'name' => 'WordPress Network (multisite) support',
 				'description' => 'Adds support for WordPress Network (multisite) installations, allowing secure backup by the super-admin only',
-				'shopurl' => '/shop/network-multisite/'
+				'shopurl' => '/shop/updraftplus-premium/'
 			),
 			'fixtime' => array(
 				'name' => 'Fix Time',
 				'description' => 'Allows you to specify the exact time at which backups will run',
-				'shopurl' => '/shop/fix-time/'
+				'shopurl' => '/shop/updraftplus-premium/'
 			),
 			'morefiles' => array(
 				'name' => 'More Files',
 				'description' => 'Allows you to backup WordPress core, and other files in your web space',
-				'shopurl' => '/shop/more-files/'
+				'shopurl' => '/shop/updraftplus-premium/'
 			),
 			'sftp' => array(
 				'name' => 'SFTP and FTPS and SCP',
 				'description' => 'Allows SFTP and SCP as a cloud backup method, and encrypted FTP',
-				'shopurl' => '/shop/sftp/'
+				'shopurl' => '/shop/updraftplus-premium/'
 			),
 			'dropbox-folders' => array(
 				'name' => 'Dropbox Folders',
 				'description' => 'Allows you to organise your backups into Dropbox sub-folders',
-				'shopurl' => '/shop/dropbox-folders/'
+				'shopurl' => '/shop/updraftplus-premium/'
 			),
 			'morestorage' => array(
 				'name' => 'Multiple storage destinations',
 				'description' => 'Allows you to send a single backup to multiple destinations (e.g. Dropbox and Google Drive and Amazon)',
-				'shopurl' => '/shop/morestorage/'
+				'shopurl' => '/shop/updraftplus-premium/'
 			),
 			'webdav' => array(
 				'name' => 'WebDAV support',
 				'description' => 'Allows you to use the WebDAV and encrypted WebDAV protocols for remote backups',
-				'shopurl' => '/shop/webdav/'
+				'shopurl' => '/shop/updraftplus-premium/'
 			)
 		);
 	}
@@ -681,7 +821,7 @@ class UpdraftPlusAddons2 {
 
 		if (!is_dir($plugin_dir.'/addons')) return array();
 		$local_addons = array();
-		if ($dir_handle = @opendir($plugin_dir.'/addons')) {
+		if ($dir_handle = @opendir($plugin_dir.'/addons')) {// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 			while (false !== ($e = readdir($dir_handle))) {
 				if (is_file($plugin_dir.'/addons/'.$e) && preg_match('/^(.*)\.php$/i', $e, $matches)) {
 					$addon = $this->get_addon_info($plugin_dir.'/addons/'.$e);
@@ -701,6 +841,11 @@ class UpdraftPlusAddons2 {
 
 	}
 
+	/**
+	 * Get a list of available add-ons
+	 *
+	 * @return Array
+	 */
 	public function get_available_addons() {
 
 		// Cached in this object?
@@ -770,9 +915,9 @@ class UpdraftPlusAddons2 {
 	}
 
 	/**
-	 * This function will get the connection Status
+	 * This function will get the connection status
 	 *
-	 * @return boolean Returns either true or a WP_Error
+	 * @return boolean|WP_Error - returns true if successful
 	 */
 	public function connection_status() {
 
@@ -831,10 +976,9 @@ class UpdraftPlusAddons2 {
 
 		global $updraftplus;
 	
-		// Used previous response, if available
-		if (is_array($this->user_addons) && count($this->user_addons)>0) return true;
+		// Use previous response, if available
+		if (is_array($this->user_addons) && count($this->user_addons) > 0) return true;
 
-		// We sent the password in the clear; but then, so does the user every time they log in at updraftplus.com anyway, so there is no difference
 		$url = $this->url.'/plugin-info/?udm_action=connect';
 
 		// The 'password' encoded here is the updraftplus.com password. See here: https://updraftplus.com/faqs/tell-me-about-my-updraftplus-com-account/. Note - it may be empty if the user removed their password.
@@ -855,6 +999,7 @@ class UpdraftPlusAddons2 {
 		if (is_wp_error($result) || false === $result) return $result;
 
 		$code = wp_remote_retrieve_response_code($result);
+		
 		if ($code >= 400) {
 		
 			$message = __('An error response was received; HTTP code:', 'updraftplus').' '.$code;
@@ -866,15 +1011,12 @@ class UpdraftPlusAddons2 {
 			}
 			
 			if (403 == $code) {
-				$ip_lookup = wp_remote_get('http://ipinfo.io/ip', array('timeout' => 6));
-				if (200 == wp_remote_retrieve_response_code($ip_lookup)) {
-					$ip_addr = trim(wp_remote_retrieve_body($ip_lookup));
-					if (false !== filter_var($ip_addr, FILTER_VALIDATE_IP)) {
-						$message .= '  IP: '.htmlspecialchars($ip_addr);
-						
-						$message .= '<br>'.__('This most likely means that you share a webserver with a hacked website that has been used in previous attacks.', 'updraftplus').'<br> <a href="https://updraftplus.com/unblock-ip-address/" target="_blank">'.__('To remove any block, please go here.', 'updraftplus').'</a> '.__('Your IP address:', 'updraftplus').' '.htmlspecialchars($ip_addr);
-						
-					}
+				$ip_addr = $updraftplus->get_outgoing_ip_address(true);
+				if (false !== $ip_addr && false !== filter_var($ip_addr, FILTER_VALIDATE_IP)) {
+					$message .= '  IP: '.htmlspecialchars($ip_addr);
+					
+					$message .= '<br>'.__('This most likely means that you share a webserver with a hacked website that has been used in previous attacks.', 'updraftplus').'<br> <a href="https://updraftplus.com/unblock-ip-address/" target="_blank">'.__('To remove any block, please go here.', 'updraftplus').'</a> '.__('Your IP address:', 'updraftplus').' '.htmlspecialchars($ip_addr);
+					
 				}
 			}
 			

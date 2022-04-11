@@ -5,7 +5,7 @@ UpdraftPlus Addon: s3-enhanced:Amazon S3, enhanced
 Description: Adds enhanced capabilities for Amazon S3 users
 Version: 1.7
 Shop: /shop/s3-enhanced/
-RequiresPHP: 5.3.3
+RequiresPHP: 5.5
 Latest Change: 1.14.2
 */
 // @codingStandardsIgnoreEnd
@@ -14,7 +14,7 @@ if (!defined('UPDRAFTPLUS_DIR')) die('No direct access allowed');
 
 use Aws\Iam\IamClient;
 
-$updraftplus_addon_s3_enhanced = new UpdraftPlus_Addon_S3_Enhanced;
+new UpdraftPlus_Addon_S3_Enhanced;
 
 class UpdraftPlus_Addon_S3_Enhanced {
 
@@ -40,11 +40,7 @@ class UpdraftPlus_Addon_S3_Enhanced {
 	 */
 	public function storageclass($class, $storage, $opts) {
 	
-		if (((is_a($storage, 'UpdraftPlus_S3') || is_a($storage, 'UpdraftPlus_S3_Compat')) && is_array($opts) && !empty($opts['rrs']))) {
-			if ('STANDARD_IA' == $opts['rrs'] || 'STANDARD' == $opts['rrs']) {
-				$class = $opts['rrs'];
-			}
-		}
+		if (((is_a($storage, 'UpdraftPlus_S3') || is_a($storage, 'UpdraftPlus_S3_Compat')) && is_array($opts) && !empty($opts['rrs']) && in_array($opts['rrs'], array('STANDARD', 'STANDARD_IA', 'INTELLIGENT_TIERING')))) $class = $opts['rrs'];
 
 		return $class;
 	}
@@ -60,16 +56,17 @@ class UpdraftPlus_Addon_S3_Enhanced {
 	public function extra_storage_options_configuration_template($existing_partial_template_str, $backup_module_object) {
 		$classes = $backup_module_object->get_css_classes();
 		return $existing_partial_template_str.'<tr class="'.$classes.'">
-			<th>'.__('Storage class', 'updraftplus').':<br><a href="https://aws.amazon.com/s3/storage-classes/"><em>'.__('(Read more)', 'updraftplus').'</em></a></th>
+			<th>'.__('Storage class', 'updraftplus').':<br><a aria-label="'.__('Read more about storage classes', 'updraftplus').'" href="https://aws.amazon.com/s3/storage-classes/" target="_blank"><em>'.__('(Read more)', 'updraftplus').'</em></a></th>
 			<td>
 				<select '.$backup_module_object->output_settings_field_name_and_id('rrs', true).' data-updraft_settings_test="rrs">
 					<option value="STANDARD" {{#ifeq "STANDARD" rrs}}selected="selected"{{/ifeq}}>'.__('Standard', 'updraftplus').'</option>
 					<option value="STANDARD_IA" {{#ifeq "STANDARD_IA" rrs}}selected="selected"{{/ifeq}}>'.__('Standard (infrequent access)', 'updraftplus').'</option>
+					<option value="INTELLIGENT_TIERING" {{#ifeq "INTELLIGENT_TIERING" rrs}}selected="selected"{{/ifeq}}>'.__('Intelligent Tiering', 'updraftplus').'</option>
 				</select>
 			</td>
 		</tr>
 		<tr class="'.$classes.'">
-			<th>'.__('Server-side encryption', 'updraftplus').':<br><a href="https://aws.amazon.com/blogs/aws/new-amazon-s3-server-side-encryption/"><em>'.__('(Read more)', 'updraftplus').'</em></a></th>
+			<th>'.__('Server-side encryption', 'updraftplus').':<br><a aria-label="'.__('Read more about server-side encryption', 'updraftplus').'" href="https://aws.amazon.com/blogs/aws/new-amazon-s3-server-side-encryption/" target="_blank"><em>'.__('(Read more)', 'updraftplus').'</em></a></th>
 			<td><input data-updraft_settings_test="server_side_encryption" title="'.__("Check this box to use Amazon's server-side encryption", 'updraftplus').'" type="checkbox" '.$backup_module_object->output_settings_field_name_and_id('server_side_encryption', true).' value="1" {{#ifeq "1" server_side_encryption}}checked="checked"{{/ifeq}}/></td>
 		</tr>';
 	}
@@ -82,7 +79,7 @@ class UpdraftPlus_Addon_S3_Enhanced {
 	 */
 	public function transform_options_s3_options($opts) {
 		$rrs = empty($opts['rrs']) ? 'STANDARD' : $opts['rrs'];
-		if (!empty($rrs) && 'STANDARD_IA' != $rrs) $rrs = 'STANDARD';
+		if (!empty($rrs) && 'STANDARD_IA' != $rrs && 'INTELLIGENT_TIERING' != $rrs) $rrs = 'STANDARD';
 		$opts['rrs'] = $rrs;
 		return $opts;
 	}
@@ -116,7 +113,7 @@ class UpdraftPlus_Addon_S3_Enhanced {
 	 *
 	 * @return Array - results (with keys dependent upon the outcome)
 	 */
-	public function newuser_go($initial_value = array(), $settings_values) {
+	public function newuser_go($initial_value = array(), $settings_values = array()) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
 		if (empty($settings_values['adminaccesskey'])) {
 			return array('e' => 1, 'm' => __('You need to enter an admin access key', 'updraftplus'));
@@ -182,33 +179,30 @@ class UpdraftPlus_Addon_S3_Enhanced {
 			$path = "";
 		}
 		
-		$location = @$storage->getBucketLocation($bucket);
+		$location = @$storage->getBucketLocation($bucket);// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 		if ($location) {
 			$bucket_exists = true;
-			$bucket_verb = __('Region', 'updraftplus').": $location: ";
 		}
 		
 		if (!isset($bucket_exists)) {
 			$storage->useDNSBucketName(true);
-			$gb = @$storage->getBucket($bucket, null, null, 1);
+			$gb = @$storage->getBucket($bucket, null, null, 1);// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 			if (false !== $gb) {
 				$bucket_exists = true;
 				$location = '';
-				$bucket_verb = '';
 			}
 		}
 		
 		if (!isset($bucket_exists)) {
 			$storage->setExceptions(true);
 			try {
-				$try_to_create_bucket = @$storage->putBucket($bucket, 'private', $region);
+				$try_to_create_bucket = @$storage->putBucket($bucket, 'private', $region);// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 			} catch (Exception $e) {
 				$try_to_create_bucket = false;
 				$s3_error = $e->getMessage();
 			}
 			$storage->setExceptions(false);
 			if ($try_to_create_bucket) {
-				$bucket_verb = '';
 				$gb = $try_to_create_bucket;
 			} else {
 				$msg = __("Failure: We could not successfully access or create such a bucket. Please check your access credentials, and if those are correct then try another bucket name (as another AWS user may already have taken your name).", 'updraftplus');
@@ -252,8 +246,6 @@ class UpdraftPlus_Addon_S3_Enhanced {
 		}
 		
 		$user = $response['User']['UserName'];
-		$id = $response['User']['UserId'];
-		$arn = $response['User']['Arn'];
 		
 		// Add the User to the bucket
 		
@@ -363,22 +355,29 @@ class UpdraftPlus_Addon_S3_Enhanced {
 			<select id="updraft_s3newapiuser_region">
 				<?php
 					$regions = array(
-						'us-east-1' => __('US Standard (default)', 'updraftplus'),
+						'us-east-1' => __('US East (N. Virginia) (default)', 'updraftplus'),
 						'us-east-2' => __('US East (Ohio)', 'updraftplus'),
 						'us-west-2' => __('US West (Oregon)', 'updraftplus'),
 						'us-west-1' => __('US West (N. California)', 'updraftplus'),
 						'us-gov-west-1' => __('US Government West (restricted)', 'updraftplus'),
-						'canada-central-1' => __('Canada Central', 'updraftplus'),
+						'ca-central-1' => __('Canada (Central)', 'updraftplus'),
 						'eu-west-1' => __('Europe (Ireland)', 'updraftplus'),
 						'eu-west-2' => __('Europe (London)', 'updraftplus'),
 						'eu-west-3' => __('Europe (Paris)', 'updraftplus'),
 						'eu-central-1' => __('Europe (Frankfurt)', 'updraftplus'),
+						'eu-south-1' => __('Europe (Milan)', 'updraftplus'),
+						'eu-north-1' => __('Europe (Stockholm)', 'updraftplus'),
+						'me-south-1' => __('Middle East (Bahrain)', 'updraftplus'),
+						'af-south-1' => __('Africa (Cape Town)', 'updraftplus'),
 						'ap-northeast-2' => __('Asia Pacific (Seoul)', 'updraftplus'),
 						'ap-southeast-1' => __('Asia Pacific (Singapore)', 'updraftplus'),
 						'ap-southeast-2' => __('Asia Pacific (Sydney)', 'updraftplus'),
 						'ap-south-1' => __('Asia Pacific (Mumbai)', 'updraftplus'),
 						'ap-northeast-1' => __('Asia Pacific (Tokyo)', 'updraftplus'),
-						'sa-east-1' => __('South America (Sao Paulo)', 'updraftplus'),
+						'ap-northeast-3' => __('Asia Pacific (Osaka-Local) (restricted)', 'updraftplus'),
+						'ap-east-1' => __('Asia Pacific (Hong Kong)', 'updraftplus'),
+						'sa-east-1' => __('South America (São Paulo)', 'updraftplus'),
+						'cn-northwest-1' => __('China (Ningxia) (restricted)', 'updraftplus'),
 						'cn-north-1' => __('China (Beijing) (restricted)', 'updraftplus'),
 					);
 					$selregion = 'us-east-1';
@@ -391,11 +390,11 @@ class UpdraftPlus_Addon_S3_Enhanced {
 			</select>
 			<label for="updraft_s3newapiuser_bucket"><?php _e("S3 bucket", 'updraftplus');?></label><span class="updraft_s3newapiuser_textexplain">s3://</span><input type="text" id="updraft_s3newapiuser_bucket" value="">
 			
-			<label for="updraft_s3newapiuser_allowdownload"><?php _e("Allow download", 'updraftplus');?></label>
+			<label aria-label="<?php echo __("Allow download", 'updraftplus').'. '.__('Without this permission, you cannot directly download or restore using UpdraftPlus, and will instead need to visit the AWS website.', 'updraftplus'); ?>" for="updraft_s3newapiuser_allowdownload"><?php _e("Allow download", 'updraftplus');?></label>
 			<input type="checkbox" id="updraft_s3newapiuser_allowdownload" value="1" checked="checked">
 			<span class="updraft_s3newapiuser_checkboxexplain"><em><?php _e('Without this permission, you cannot directly download or restore using UpdraftPlus, and will instead need to visit the AWS website.', 'updraftplus');?></em></span>
 
-			<label for="updraft_s3newapiuser_allowdelete"><?php _e("Allow deletion", 'updraftplus');?></label>
+			<label aria-label="<?php echo __("Allow deletion", 'updraftplus').'. '.__("Without this permission, UpdraftPlus cannot delete backups - you should also set your 'retain' settings very high to prevent seeing deletion errors.", 'updraftplus');?>" for="updraft_s3newapiuser_allowdelete"><?php _e("Allow deletion", 'updraftplus');?></label>
 			<input type="checkbox" id="updraft_s3newapiuser_allowdelete" value="1" checked="checked">
 			<span class="updraft_s3newapiuser_checkboxexplain"><em><?php _e("Without this permission, UpdraftPlus cannot delete backups - you should also set your 'retain' settings very high to prevent seeing deletion errors.", 'updraftplus');?></em></span>
 
@@ -431,8 +430,8 @@ class UpdraftPlus_Addon_S3_Enhanced {
 		</div>
 
 		<script>
-		jQuery(document).ready(function($) {
-			$('#updraft_s3_newapiuser').click(function(e) {
+		jQuery(function($) {
+			$('#updraft_s3_newapiuser').on('click', function(e) {
 				e.preventDefault();
 				$('#updraft-s3newapiuser-modal').dialog('open');
 			});

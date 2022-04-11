@@ -3,25 +3,44 @@
 /*
 UpdraftPlus Addon: sftp:SFTP, SCP and FTPS Support
 Description: Allows UpdraftPlus to backup to SFTP, SSH and encrypted FTP servers
-Version: 2.7
+Version: 2.8
 Shop: /shop/sftp/
-Latest Change: 1.12.35
+Latest Change: 1.16.58
 */
 // @codingStandardsIgnoreEnd
 
 if (!defined('UPDRAFTPLUS_DIR')) die('No direct access allowed');
 
+/*
+This file contains the classes:
+
+- UpdraftPlus_Addons_RemoteStorage_sftp_helper
+- UpdraftPlus_Addons_RemoteStorage_sftp (extends UpdraftPlus_RemoteStorage_Addons_Base_v2)
+- UpdraftPlus_ftp_wrapper
+*/
+
 if (!class_exists('UpdraftPlus_RemoteStorage_Addons_Base_v2')) require_once(UPDRAFTPLUS_DIR.'/methods/addon-base-v2.php');
 
 // Do not instantiate the storage object (as that is instantiated on demand), but only the helper
-$updraftplus_addons_sftp = new UpdraftPlus_Addons_RemoteStorage_sftp_helper;
+new UpdraftPlus_Addons_RemoteStorage_sftp_helper;
+
 class UpdraftPlus_Addons_RemoteStorage_sftp_helper {
 
+	/**
+	 * Class constructor
+	 */
 	public function __construct() {
 		add_filter('updraft_sftp_ftps_notice', array($this, 'ftps_notice'));
 		add_filter('updraftplus_ftp_possible', array($this, 'updraftplus_ftp_possible'));
 	}
 
+	/**
+	 * Called by the WP filter updraftplus_ftp_possible
+	 *
+	 * @param Array $funcs_disabled
+	 *
+	 * @return Array
+	 */
 	public function updraftplus_ftp_possible($funcs_disabled) {
 		if (!is_array($funcs_disabled)) return $funcs_disabled;
 		foreach (array('ftp_ssl_connect', 'ftp_login') as $func) {
@@ -33,15 +52,29 @@ class UpdraftPlus_Addons_RemoteStorage_sftp_helper {
 		return $funcs_disabled;
 	}
 
+	/**
+	 * Called by the WP filter updraft_sftp_ftps_notice
+	 *
+	 * @return String
+	 */
 	public function ftps_notice() {
-		return __("Encrypted FTP is available, and will be automatically tried first (before falling back to non-encrypted if it is not successful), unless you disable it using the expert options. The 'Test FTP Login' button will tell you what type of connection is in use.", 'updraftplus').' '.__('Some servers advertise encrypted FTP as available, but then time-out (after a long time) when you attempt to use it. If you find this happenning, then go into the "Expert Options" (below) and turn off SSL there.', 'updraftplus').' '.__('Explicit encryption is used by default. To force implicit encryption (port 990), add :990 to your FTP server below.', ' updraftplus');
+		return __("Encrypted FTP is available, and will be automatically tried first (before falling back to non-encrypted if it is not successful), unless you disable it using the expert options. The 'Test FTP Login' button will tell you what type of connection is in use.", 'updraftplus').' '.__('Some servers advertise encrypted FTP as available, but then time-out (after a long time) when you attempt to use it. If you find this happening, then go into the "Expert Options" (below) and turn off SSL there.', 'updraftplus').' '.__('Explicit encryption is used by default. To force implicit encryption (port 990), add :990 to your FTP server below.', ' updraftplus');
 	}
 }
 
 class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Addons_Base_v2 {
 
-	public function do_connect_and_chdir() {
+	private $last_logged_at = 0;
+
+	/**
+	 * Set up the connection, change directory to the configured directory, and return a connection object
+	 *
+	 * @return WP_Error|Net_SSH2|Net_SCP
+	 */
+	private function do_connect_and_chdir() {
+	
 		$options = $this->get_options();
+		
 		if (!array($options)) return new WP_Error('no_settings', sprintf(__('No %s settings were found', 'updraftplus'), 'SCP/SFTP'));
 		
 		if (empty($options['host'])) return new WP_Error('no_settings', sprintf(__('No %s found', 'updraftplus'), __('SCP/SFTP host setting', 'updraftplus')));
@@ -49,12 +82,12 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 		if (empty($options['pass']) && empty($options['key'])) return new WP_Error('no_settings', sprintf(__('No %s found', 'updraftplus'), __('SCP/SFTP password/key', 'updraftplus')));
 		$host = $options['host'];
 		$user = $options['user'];
-		$pass = (empty($options['pass'])) ? '' : $options['pass'];
-		$key = (empty($options['key'])) ? '' : $options['key'];
+		$pass = empty($options['pass']) ? '' : $options['pass'];
+		$key = empty($options['key']) ? '' : $options['key'];
 		$port = empty($options['port']) ? 22 : (int) $options['port'];
 		$fingerprint = empty($options['fingerprint']) ? '' : $options['fingerprint'];
 		$path = empty($options['path']) ? '' : $options['path'];
-		$scp = empty($options['scp']) ? 0 : 1;
+		$scp = !empty($options['scp']);
 
 		$this->path = $path;
 
@@ -65,13 +98,13 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 		if ($path) {
 			if ($scp) {
 				// May fail - e.g. if directory already exists, or if the remote shell is restricted
-				@$this->ssh->exec("mkdir ".escapeshellarg($path));
+				@$this->ssh->exec("mkdir ".escapeshellarg($path));// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 				// N.B. - have not changed directory (since cd may not be an available command)
 			} else {
-				@$sftp->mkdir($path);
+				@$sftp->mkdir($path);// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 				// See if the directory now exists
 				if (!$sftp->chdir($path)) {
-					@$sftp->disconnect();
+					@$sftp->disconnect();// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 					return new WP_Error('nochdir', __("Check your file permissions: Could not successfully create and enter directory:", 'updraftplus')." $path");
 				}
 			}
@@ -87,22 +120,22 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 
 	}
 
-	public function upload_files($ret, $backup_array) {
+	public function upload_files($ret, $backup_array) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
-		global $updraftplus, $updraftplus_backup;
+		global $updraftplus;
 		$sftp = $this->do_connect_and_chdir();
 		if (is_wp_error($sftp)) {
-			foreach ($sftp->get_error_messages() as $key => $msg) {
-				$updraftplus->log($msg);
-				$updraftplus->log($msg, 'error');
+			foreach ($sftp->get_error_messages() as $msg) {
+				$this->log($msg);
+				$this->log($msg, 'error');
 			}
 			return false;
 		}
 
 		if (empty($this->scp)) {
-			$updraftplus->log("SFTP: Successfully logged in");
+			$this->log("Successfully logged in");
 		} else {
-			$updraftplus->log("SCP: Successfully logged in");
+			$this->log("SCP: Successfully logged in");
 		}
 
 		$any_failures = false;
@@ -110,10 +143,12 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 		$updraft_dir = $updraftplus->backups_dir_location().'/';
 
 		foreach ($backup_array as $file) {
-			$updraftplus->log("SCP/SFTP upload: attempt: $file");
+			$this->log("upload: attempt: $file");
 			
 			$this->sftp_path = $updraft_dir.'/'.$file;
 			$this->sftp_size = max(filesize($updraft_dir.'/'.$file), 1);
+
+			$this->last_logged_at = 0;
 
 			if (empty($this->scp)) {
 
@@ -126,10 +161,10 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 					$current_remote_size = (is_array($remote_stat) && isset($remote_stat['size']) && $remote_stat['size'] > 0) ? $remote_stat['size'] : 0;
 					if ($current_remote_size > 0) {
 						$this->sftp_began_at = $current_remote_size;
-						$updraftplus->log('SFTP: File exists remotely; upload will resume; remote size is: '.round($current_remote_size/1024, 2).' KB');
+						$this->log('File exists remotely; upload will resume; remote size is: '.round($current_remote_size/1024, 2).' KB');
 					}
 				} catch (Exception $e) {
-					$updraftplus->log('Exception when stating remote file ('.get_class($e).'): '.$e->getMessage());
+					$this->log('Exception when stating remote file ('.get_class($e).'): '.$e->getMessage());
 					$current_remote_size = 0;
 				}
 
@@ -137,8 +172,8 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 					$updraftplus->uploaded_file($file);
 				} else {
 					$any_failures = true;
-					$updraftplus->log('ERROR: SFTP: Failed to upload file: '.$file);
-					$updraftplus->log(sprintf(__('%s Error: Failed to upload', 'updraftplus'), 'SFTP').": $file", 'error');
+					$this->log('ERROR: SFTP: Failed to upload file: '.$file);
+					$this->log(__('Error: Failed to upload', 'updraftplus').": $file", 'error');
 				}
 			} else {
 			
@@ -149,50 +184,39 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 					$updraftplus->uploaded_file($file);
 				} else {
 					$any_failures = true;
-					$updraftplus->log('ERROR: SCP: Failed to upload file: '.$file);
-					$updraftplus->log(sprintf(__('%s Error: Failed to upload', 'updraftplus'), 'SCP').": $file", 'error');
+					$this->log('ERROR: SCP: Failed to upload file: '.$file);
+					$this->log(sprintf(__('%s Error: Failed to upload', 'updraftplus'), 'SCP').": $file", 'error');
 				}
 			}
 		}
 
-// if (empty($this->scp)) {
-// @$sftp->disconnect();
-// } else {
-// @$this->ssh->disconnect();
-// }
-
-		if (!$any_failures) {
-			return array('sftp_object' => $sftp);
-		} else {
-			return null;
-		}
-
+		// In the array we used to pass (before 1.16.58) 'sftp_object' => $sftp; but this was not multi-instance compatible
+		return $any_failures ? null : array();
+		
 	}
 
 	public function sftp_progress_callback($sent) {
 		global $updraftplus;
-		static $sftp_last_logged_at = 0;
 		$bytes_sent = empty($this->sftp_began_at) ? $sent : $this->sftp_began_at + $sent;
-		if ($bytes_sent > $sftp_last_logged_at + 1048576) {
+		if ($bytes_sent > $this->last_logged_at + 1048576) {
 			$perc = empty($this->sftp_size) ? 0 : round(100*$bytes_sent / $this->sftp_size, 1);
 			$updraftplus->record_uploaded_chunk($perc, '', $this->sftp_path);
-			$sftp_last_logged_at = $bytes_sent;
+			$this->last_logged_at = $bytes_sent;
 		}
 	}
 
-	public function delete_files($ret, $files, $sftp_arr = false) {
+	public function delete_files($ret, $files, $sftp_arr = false) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
-		global $updraftplus;
 		if (is_string($files)) $files = array($files);
 
-		if ($sftp_arr) {
+		if ($sftp_arr && isset($sftp_arr['sftp_object'])) {
 			$sftp = $sftp_arr['sftp_object'];
 		} else {
 			$sftp = $this->do_connect_and_chdir();
 			if (is_wp_error($sftp)) {
-				foreach ($sftp->get_error_messages() as $key => $msg) {
-					$updraftplus->log($msg);
-					$updraftplus->log($msg, 'error');
+				foreach ($sftp->get_error_messages() as $msg) {
+					$this->log($msg);
+					$this->log($msg, 'error');
 				}
 				return false;
 			}
@@ -203,21 +227,21 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 		foreach ($files as $file) {
 
 			if (empty($this->scp)) {
-				$updraftplus->log("SFTP: Delete remote: $file");
+				$this->log("Delete remote: $file");
 			} else {
-				$updraftplus->log("SCP: Delete remote: $file");
+				$this->log("SCP: Delete remote: $file");
 			}
 
 			if (empty($this->scp)) {
 				if (!$sftp->delete($file, false)) {
-					$updraftplus->log("SFTP: Delete failed: $file");
+					$this->log("Delete failed: $file");
 				} else {
 					$some_success = true;
 				}
 			} else {
 				$rfile = empty($this->path) ? $file : trailingslashit($this->path).$file;
 				if (!$this->ssh->exec("rm -f ".escapeshellarg($rfile))) {
-					$updraftplus->log("SCP: Delete failed: $rfile");
+					$this->log("SCP: Delete failed: $rfile");
 				} else {
 					$some_success = true;
 				}
@@ -237,6 +261,8 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 		if ($this->scp) {
 
 			$cdcom = empty($this->path) ? '' : "cd ".trailingslashit($this->path)." && ";
+			
+			$nosizes = false;
 
 			if (false == ($exec = $this->ssh->exec($cdcom."ls -l ${match}*"))) {
 				$nosizes = true;
@@ -266,15 +292,15 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 		return $results;
 	}
 
-	public function download_file($ret, $file) {
+	public function download_file($ret, $file) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
 		global $updraftplus;
 
 		$sftp = $this->do_connect_and_chdir();
 		if (is_wp_error($sftp)) {
-			foreach ($sftp->get_error_messages() as $key => $msg) {
-				$updraftplus->log($msg);
-				$updraftplus->log($msg, 'error');
+			foreach ($sftp->get_error_messages() as $msg) {
+				$this->log($msg);
+				$this->log($msg, 'error');
 			}
 			return false;
 		}
@@ -283,8 +309,8 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 
 		$rfile = (empty($this->scp) || empty($this->path)) ? $file : trailingslashit($this->path).$file;
 		if (!$sftp->get($rfile, $fullpath)) {
-			$updraftplus->log("SFTP Error: Failed to download: $rfile");
-			$updraftplus->log(sprintf(__('%s Error: Failed to download', 'updraftplus'), 'SCP/SFTP').": $rfile", 'error');
+			$this->log("Error: Failed to download: $rfile");
+			$this->log(__('Error: Failed to download', 'updraftplus').": $rfile", 'error');
 			return false;
 		}
 		return true;
@@ -298,23 +324,25 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 	 * @param String  $fingerprint - fingerprint to check (not currently implemented)
 	 * @param String  $user        - login username
 	 * @param String  $pass        - login password
-	 * @param String  $key         - RSA private key to use for logging in (an alternative to password)
+	 * @param String  $key         - RSA private key to use for logging in (an alternative to a password)
 	 * @param Boolean $scp         - if set, then SCP will be used; otherwise SFTP
 	 * @param Boolean $debug       - debugging mode: will ask phpseclib to log (which, being controlled by constants, may not be possible if they are already set)
+	 *
 	 * @return WP_Error|Net_SSH2|Net_SCP
 	 */
-	public function connect($host, $port = 22, $fingerprint, $user, $pass = '', $key = '', $scp = false, $debug = false) {
+	private function connect($host, $port = 22, $fingerprint = '', $user = '', $pass = '', $key = '', $scp = false, $debug = false) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
-	global $updraftplus;
+		global $updraftplus;
+		
 		$this->scp = $scp;
 
 		$timeout = (defined('UPDRAFTPLUS_SFTP_TIMEOUT') && is_numeric(UPDRAFTPLUS_SFTP_TIMEOUT)) ? UPDRAFTPLUS_SFTP_TIMEOUT : 15;
 
 		if ($scp) {
-			$ensure_phpseclib = $updraftplus->ensure_phpseclib('Net_SSH2', 'Net/SSH2');
-			$updraftplus->ensure_phpseclib('Net_SCP', 'Net/SCP');
+			$ensure_phpseclib = $updraftplus->ensure_phpseclib('Net_SSH2');
+			$updraftplus->ensure_phpseclib('Net_SCP');
 		} else {
-			$ensure_phpseclib = $updraftplus->ensure_phpseclib('Net_SFTP', 'Net/SFTP');
+			$ensure_phpseclib = $updraftplus->ensure_phpseclib('Net_SFTP');
 		}
 		
 		if (is_wp_error($ensure_phpseclib)) return $ensure_phpseclib;
@@ -325,21 +353,23 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 				// Alternative: NET_SFTP_LOG_SIMPLE. phpseclib source says that NET_SSH2_LOG_COMPLEX is most useful for SSH2
 				define('NET_SSH2_LOGGING', NET_SSH2_LOG_COMPLEX);
 			} elseif (NET_SSH2_LOGGING != NET_SSH2_LOG_COMPLEX) {
-				$updraftplus->log("NET_SSH2_LOGGING: constant was already set; value not as desired (value=".NET_SSH2_LOGGING.", desired=".NET_SSH2_LOG_COMPLEX.")");
+				$this->log("NET_SSH2_LOGGING: constant was already set; value not as desired (value=".NET_SSH2_LOGGING.", desired=".NET_SSH2_LOG_COMPLEX.")");
 			}
 		}
 		
-		if ($scp) {
-			$this->ssh = new Net_SSH2($host, $port, $timeout);
-		} else {
-			$this->ssh = new Net_SFTP($host, $port, $timeout);
-		}
+		$connection_class = $scp ? 'Net_SSH2' : 'Net_SFTP';
+		
+		$this->ssh = new $connection_class($host, $port, $timeout);
 
 		if (!empty($key)) {
-			$updraftplus->ensure_phpseclib('Crypt_RSA', 'Crypt/RSA');
-			$updraftplus->ensure_phpseclib('Math_BigInteger', 'Math/BigInteger');
+			$updraftplus->ensure_phpseclib('Crypt_RSA');
+			$updraftplus->ensure_phpseclib('Math_BigInteger');
 			$rsa = new Crypt_RSA();
 			if (false === $rsa->loadKey($key)) {
+				if (preg_match('/Encryption: (.+)/i', $key, $matches)) {
+					$encryption = trim($matches[1]);
+					if ('none' !== $encryption) return new WP_Error('no_key_passphrase', __("The key provided is encrypted. You need to provide the unencrypted key (see: https://updraftplus.com/faqs/why-must-i-use-a-non-encrypted-sftp-key/).", 'updraftplus'));
+				}
 				if (empty($pass)) return new WP_Error('no_load_key', __('The key provided was not in a valid format, or was corrupt.', 'updraftplus'));
 			} else {
 				$pass = $rsa;
@@ -348,7 +378,10 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 
 		// See: https://github.com/phpseclib/phpseclib/issues/1271#issuecomment-390417276 . Default is 10s.
 		$this->ssh->setTimeout(35);
-		
+
+		// Ensure phpseclib Crypt_Blowfish is loaded, over PEAR's
+		$updraftplus->ensure_phpseclib('Crypt_Blowfish');
+
 		if (!$this->ssh->login($user, $pass)) {
 			$error_data = null;
 			$message = 'SSH 2 login failed';
@@ -385,9 +418,15 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 
 	}
 
+	/**
+	 * This method overrides the parent method and lists the supported features of  this remote storage option.
+	 *
+	 * @return Array - an array of supported features (any features not
+	 * mentioned are assumed to not be supported)
+	 */
 	public function get_supported_features() {
 		// This options format is handled via only accessing options via $this->get_options()
-		return array('multi_options', 'config_templates', 'multi_storage');
+		return array('multi_options', 'config_templates', 'multi_storage', 'conditional_logic');
 	}
 
 	public function get_default_options() {
@@ -408,8 +447,6 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 	 * @return String - the template
 	 */
 	public function get_pre_configuration_template() {
-
-		global $updraftplus_admin;
 
 		$classes = $this->get_css_classes(false);
 		
@@ -437,28 +474,28 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 			<tr class="<?php echo $classes; ?>">
 				<th><?php _e('Host', 'updraftplus');?>:</th>
 				<td>
-					<input type="text" style="width: 292px" data-updraft_settings_test="host" <?php $this->output_settings_field_name_and_id('host');?> value="{{host}}" />
+					<input type="text" class="updraft_input--wide" data-updraft_settings_test="host" <?php $this->output_settings_field_name_and_id('host');?> value="{{host}}" />
 				</td>
 			</tr>
 
 			<tr class="<?php echo $classes; ?>">
 				<th><?php _e('Port', 'updraftplus');?>:</th>
 				<td>
-					<input type="text" style="width: 292px" data-updraft_settings_test="port"  <?php $this->output_settings_field_name_and_id('port');?> value="{{port}}" />
+					<input type="text" class="updraft_input--wide" data-updraft_settings_test="port"  <?php $this->output_settings_field_name_and_id('port');?> value="{{port}}" />
 				</td>
 			</tr>
 
 			<tr class="<?php echo $classes; ?>">
 				<th><?php _e('Username', 'updraftplus');?>:</th>
 				<td>
-					<input type="text" autocomplete="off" style="width: 292px" data-updraft_settings_test="user" <?php $this->output_settings_field_name_and_id('user');?> value="{{user}}" />
+					<input type="text" autocomplete="off" class="updraft_input--wide" data-updraft_settings_test="user" <?php $this->output_settings_field_name_and_id('user');?> value="{{user}}" />
 				</td>
 			</tr>
 
 			<tr class="<?php echo $classes; ?>">
 				<th><?php _e('Password', 'updraftplus');?>:</th>
 				<td>
-					<input data-updraft_settings_test="pass" type="<?php echo apply_filters('updraftplus_admin_secret_field_type', 'password'); ?>" autocomplete="off" style="width: 292px" <?php $this->output_settings_field_name_and_id('pass');?> value="{{pass}}" />
+					<input title="<?php _e('Your login may be either password or key-based - you only need to enter one, not both.', 'updraftplus'); ?>" data-updraft_settings_test="pass" type="<?php echo apply_filters('updraftplus_admin_secret_field_type', 'password'); ?>" autocomplete="off" class="updraft_input--wide" <?php $this->output_settings_field_name_and_id('pass');?> value="{{pass}}" />
 					<br><em><?php _e('Your login may be either password or key-based - you only need to enter one, not both.', 'updraftplus'); ?></em>
 				</td>
 			</tr>
@@ -466,7 +503,7 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 			<tr class="<?php echo $classes; ?>">
 				<th><?php _e('Key', 'updraftplus');?>:</th>
 				<td>
-					<textarea style="width: 292px; height: 120px;" data-updraft_settings_test="key" <?php $this->output_settings_field_name_and_id('key');?>>{{key}}</textarea>
+					<textarea title="<?php echo _x('PKCS1 (PEM header: BEGIN RSA PRIVATE KEY), XML and PuTTY format keys are accepted.', 'Do not translate BEGIN RSA PRIVATE KEY. PCKS1, XML, PEM and PuTTY are also technical acronyms which should not be translated.', 'updraftplus'); ?>" class="updraft_input--wide" rows="4" data-updraft_settings_test="key" <?php $this->output_settings_field_name_and_id('key');?>>{{key}}</textarea>
 					<br><em><?php echo _x('PKCS1 (PEM header: BEGIN RSA PRIVATE KEY), XML and PuTTY format keys are accepted.', 'Do not translate BEGIN RSA PRIVATE KEY. PCKS1, XML, PEM and PuTTY are also technical acronyms which should not be translated.', 'updraftplus'); ?></em>
 				</td>
 			</tr>
@@ -474,15 +511,15 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 			<tr class="<?php echo $classes; ?>">
 				<th><?php _e('RSA fingerprint', 'updraftplus');?>:</th>
 				<td>
-					<input data-updraft_settings_test="fingerprint" type="text" autocomplete="on" style="width: 292px" <?php $this->output_settings_field_name_and_id('fingerprint');?> value="{{fingerprint}}" />
-					<br><em><?php printf(__('MD5 (128-bit) fingerprint, in hex format - should have the same length and general appearance as this (colons optional): 73:51:43:b1:b5:fc:8b:b7:0a:3a:a9:b1:0f:69:73:a8. Using a fingerprint is not essential, but you are not secure against %s if you do not use one', 'updraftplus'), '<a href="http://en.wikipedia.org/wiki/Man-in-the-middle_attack">MITM attacks</a>'); ?></em>
+					<input title="<?php printf(__('MD5 (128-bit) fingerprint, in hex format - should have the same length and general appearance as this (colons optional): 73:51:43:b1:b5:fc:8b:b7:0a:3a:a9:b1:0f:69:73:a8. Using a fingerprint is not essential, but you are not secure against %s if you do not use one', 'updraftplus'), 'MITM attacks'); ?>" data-updraft_settings_test="fingerprint" type="text" autocomplete="on" class="updraft_input--wide" <?php $this->output_settings_field_name_and_id('fingerprint');?> value="{{fingerprint}}" />
+					<br><em><?php printf(__('MD5 (128-bit) fingerprint, in hex format - should have the same length and general appearance as this (colons optional): 73:51:43:b1:b5:fc:8b:b7:0a:3a:a9:b1:0f:69:73:a8. Using a fingerprint is not essential, but you are not secure against %s if you do not use one', 'updraftplus'), '<a href="http://en.wikipedia.org/wiki/Man-in-the-middle_attack" target="_blank">MITM attacks</a>'); ?></em>
 				</td>
 			</tr>
 			
 			<tr class="<?php echo $classes; ?>">
 				<th><?php _e('Directory path', 'updraftplus');?>:</th>
 				<td>
-					<input type="text" style="width: 292px" data-updraft_settings_test="path" <?php $this->output_settings_field_name_and_id('path');?> value="{{path}}" /><br><em><?php _e('Where to change directory to after logging in - often this is relative to your home directory.', 'updraftplus');?></em>
+					<input title="<?php _e('Where to change directory to after logging in - often this is relative to your home directory.', 'updraftplus');?>" type="text" class="updraft_input--wide" data-updraft_settings_test="path" <?php $this->output_settings_field_name_and_id('path');?> value="{{path}}" /><br><em><?php _e('Where to change directory to after logging in - often this is relative to your home directory.', 'updraftplus');?></em>
 				</td>
 			</tr>
 
@@ -499,10 +536,11 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 	}
 	
 	/**
-	 * Modifies handerbar template options
+	 * Modifies handlebar template options
 	 *
-	 * @param array $opts
-	 * @return array - Modified handerbar template options
+	 * @param Array $opts
+	 *
+	 * @return Array - Modified handerbar template options
 	 */
 	public function transform_options_for_template($opts) {
 		$opts['port'] = isset($opts['port']) ? $opts['port'] : 22;
@@ -539,7 +577,7 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 
 		$fingerprint = empty($posted_settings['fingerprint']) ? '' : $posted_settings['fingerprint'];
 
-		$scp = empty($posted_settings['scp']) ? 0 : 1;
+		$scp = !empty($posted_settings['scp']);
 
 		$host = $posted_settings['host'];
 		$user = $posted_settings['user'];
@@ -561,11 +599,11 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 		// So far, so good
 		if (empty($scp)) {
 			if ($path) {
-				@$sftp->mkdir($path);
+				@$sftp->mkdir($path);// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 				// See if the directory now exists
 				if (!$sftp->chdir($path)) {
 					echo __('Check your file permissions: Could not successfully create and enter:', 'updraftplus')." (".htmlspecialchars($path).")";
-					@$sftp->disconnect();
+					@$sftp->disconnect();// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 					return;
 				}
 			}
@@ -597,9 +635,8 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 					echo __("Failed: We are unable to match the fingerprint. However, we were able to log in and move to the indicated directory and successfully create a file in that location.", 'updraftplus');
 				}
 			}
-			echo ' ';
-			printf(__("The server's RSA key %s fingerprint: %s.", 'updraftplus'), 'MD5', $valid_fingerprints['md5']);
-			echo ' ';
+
+			printf(' '.__("The server's RSA key %s fingerprint: %s.", 'updraftplus').' ', 'MD5', $valid_fingerprints['md5']);
 			printf(__("The server's RSA key %s fingerprint: %s.", 'updraftplus'), 'SHA256', $valid_fingerprints['sha256']);
 		} else {
 			if (empty($scp)) {
@@ -610,9 +647,9 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 		}
 
 		if ($this->scp) {
-			@$this->ssh->disconnect();
+			$this->ssh->disconnect();
 		} else {
-			@$sftp->disconnect();
+			$sftp->disconnect();
 		}
 		return $ret_arr;
 	}
@@ -621,15 +658,16 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 	 * Get both md5 and sha256 fingerprints
 	 *
 	 * @param Object|String $ssh Net_SSH2 or it's subclass instace. If this is empty, $this->ssh will be $ssh
+	 *
 	 * @return Array An associative array has md5 and sha256 fingerprint
 	 */
 	private function get_fingerprints($ssh = '') {
 		global $updraftplus;
-		if (empty($ssh)) {
-			$ssh = $this->ssh;
-		}
+		
+		if (empty($ssh)) $ssh = $this->ssh;
+
 		$host_key = $ssh->getServerPublicHostKey();
-		$updraftplus->ensure_phpseclib('Crypt_RSA', 'Crypt/RSA');
+		$updraftplus->ensure_phpseclib('Crypt_RSA');
 		
 		$host_rsa = new Crypt_RSA();
 		$host_rsa->loadKey($host_key);
@@ -644,20 +682,30 @@ class UpdraftPlus_Addons_RemoteStorage_sftp extends UpdraftPlus_RemoteStorage_Ad
 	 *
 	 * @param String $fingerprint        A fingerprint which need to be validated
 	 * @param Array  $valid_fingerprints Host's valid fingerprints
+	 *
 	 * @return Boolean Whether the given fingerprint is matched or not
 	 */
 	private function validate_fingerprint($fingerprint, $valid_fingerprints = array()) {
-		$match_fingerprint = false;
-		if (empty($valid_fingerprints)) {
-			$valid_fingerprints = $this->get_fingerprints($this->ssh);
-		}
+		if (empty($valid_fingerprints)) $valid_fingerprints = $this->get_fingerprints($this->ssh);
+
 		foreach ($valid_fingerprints as $valid_fingerprint) {
 			if ($fingerprint == $valid_fingerprint)	{
-				$match_fingerprint = true;
-				break;
+				return true;
 			}
 		}
-		return $match_fingerprint;
+		return false;
+	}
+
+	/**
+	 * Check whether options have been set up by the user, or not
+	 *
+	 * @param Array $opts - the potential options
+	 *
+	 * @return Boolean
+	 */
+	public function options_exist($opts) {
+		if (is_array($opts) && !empty($opts['host']) && isset($opts['user']) && '' != $opts['user']) return true;
+		return false;
 	}
 }
 	
@@ -730,22 +778,25 @@ class UpdraftPlus_ftp_wrapper {
 						$options[CURLOPT_FTPSSLAUTH] = CURLFTPAUTH_DEFAULT; // let cURL choose the FTP authentication method (either SSL or TLS)
 					}
 					// Prints to STDERR by default - noisy
-					if (defined('WP_DEBUG') && WP_DEBUG==true && UpdraftPlus_Options::get_updraft_option('updraft_debug_mode')) {
+					if (defined('WP_DEBUG') && WP_DEBUG && UpdraftPlus_Options::get_updraft_option('updraft_debug_mode')) {
 						$options[CURLOPT_VERBOSE] = true;
 					}
+					
+					// Provided for people who explicitly set the option to support their broken server
 					if ($this->disable_verify) {
 						$options[CURLOPT_SSL_VERIFYPEER] = false;
 						$options[CURLOPT_SSL_VERIFYHOST] = 0;
 					} else {
 						$options[CURLOPT_SSL_VERIFYPEER] = true;
 					}
+					
 					if (!$this->use_server_certs) {
 						$options[CURLOPT_CAINFO] = UPDRAFTPLUS_DIR.'/includes/cacert.pem';
 					}
+					
 					if (true != $this->passive) $options[CURLOPT_FTPPORT] = '-';
 					foreach ($options as $option_name => $option_value) {
 						if (!curl_setopt($this->curl_handle, $option_name, $option_value)) {
-// throw new Exception(sprintf('Could not set cURL option: %s', $option_name));
 							global $updraftplus;
 							if (is_a($updraftplus, 'UpdraftPlus')) {
 								$updraftplus->log("Curl exception: will revert to normal FTP");
@@ -822,7 +873,7 @@ class UpdraftPlus_ftp_wrapper {
 
 	}
  
-	function curl_progress_function($download_size, $downloaded_size, $upload_size, $uploaded_size) {
+	public function curl_progress_function($download_size, $downloaded_size, $upload_size, $uploaded_size) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
 		if ($uploaded_size<1) return;
 
@@ -839,7 +890,7 @@ class UpdraftPlus_ftp_wrapper {
 
 	}
 
-	public function put($local_file_path, $remote_file_path, $mode = FTP_BINARY, $resume = false, $updraftplus = false) {
+	public function put($local_file_path, $remote_file_path, $mode = FTP_BINARY, $resume = false, $updraftplus = false) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
 		$file_size = filesize($local_file_path);
 
@@ -906,7 +957,7 @@ class UpdraftPlus_ftp_wrapper {
 			$output = curl_exec($this->curl_handle);
 			fclose($fh);
 			if (is_a($updraftplus, 'UpdraftPlus') && !$output) {
-				$updraftplus->log("FTPS error: ".curl_error($this->curl_handle));
+				$updraftplus->log("FTPS: error: ".curl_error($this->curl_handle));
 			} elseif (true === $updraftplus && !$output) {
 				echo __('Error:', 'updraftplus').' '.curl_error($this->curl_handle)."\n";
 			}
@@ -943,7 +994,6 @@ class UpdraftPlus_ftp_wrapper {
 
 	}
  
-
 	public function get($local_file_path, $remote_file_path, $mode = FTP_BINARY, $resume = false, $updraftplus = false) {
 
 		$file_last_size = 0;
@@ -1035,19 +1085,11 @@ class UpdraftPlus_ftp_wrapper {
 	}
  
 	public function make_dir($directory) {
-		if (ftp_mkdir($this->conn_id, $directory)) {
-			return true;
-		} else {
-			return false;
-		}
+		return ftp_mkdir($this->conn_id, $directory) ? true : false;
 	}
  
 	public function rename($old_name, $new_name) {
-		if (ftp_rename($this->conn_id, $old_name, $new_name)) {
-			return true;
-		} else {
-			return false;
-		}
+		return ftp_rename($this->conn_id, $old_name, $new_name) ? true : false;
 	}
  
 	public function remove_dir($directory) {
@@ -1061,8 +1103,6 @@ class UpdraftPlus_ftp_wrapper {
 			if (true === $this->curl_handle) $this->connect();
 			curl_setopt($this->curl_handle, CURLOPT_URL, 'ftps://'.$this->host.'/'.trailingslashit($directory));
 			curl_setopt($this->curl_handle, CURLOPT_RETURNTRANSFER, true);
-// curl_setopt($this->curl_handle, CURLOPT_FTPLISTONLY, true);
-// curl_setopt($this->curl_handle, CURLOPT_POSTQUOTE, array('LIST'));
 			curl_setopt($this->curl_handle, CURLOPT_TIMEOUT, 10);
 			$output = curl_exec($this->curl_handle);
 			return $output;
@@ -1076,9 +1116,8 @@ class UpdraftPlus_ftp_wrapper {
 	}
  
 	public function size($f) {
-		return ($this->curl_handle) ? false : ftp_size($this->conn_id, $f);
+		return $this->curl_handle ? false : ftp_size($this->conn_id, $f);
 	}
-
 
 	public function current_dir() {
 		return ftp_pwd($this->conn_id);

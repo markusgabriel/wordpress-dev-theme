@@ -11,7 +11,7 @@ Latest Change: 1.12.19
 
 if (!defined('UPDRAFTPLUS_DIR')) die('No direct access allowed');
 
-$updraftplus_addons_importer = new UpdraftPlus_Addons_Importer;
+new UpdraftPlus_Addons_Importer;
 
 class UpdraftPlus_Addons_Importer {
 
@@ -28,7 +28,7 @@ class UpdraftPlus_Addons_Importer {
 		add_filter('updraftplus_if_foreign_then_premium_message', array($this, 'if_foreign_then_premium_message'));
 	}
 
-	public function foreign_allow_missing_entity($allow, $type, $foreign) {
+	public function foreign_allow_missing_entity($allow, $type, $foreign) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		// This plugin splits the backup over various sets
 		return ('dropbox-wpadm' == $foreign) ? true : $allow;
 	}
@@ -63,7 +63,7 @@ class UpdraftPlus_Addons_Importer {
 		return $index;
 	}
 	
-	public function if_foreign_then_premium_message($msg) {
+	public function if_foreign_then_premium_message() {
 
 		$plugins = $this->accept_archivename(array());
 		$supported = '';
@@ -75,7 +75,7 @@ class UpdraftPlus_Addons_Importer {
 			}
 		}
 
-		return '<p><a href="https://updraftplus.com/support/using-third-party-backups/">'.__('Was this a backup created by a different backup plugin? If so, then you might first need to rename it so that it can be recognised - please follow this link.', 'updraftplus').'</a></p><p>'.sprintf(__('Supported backup plugins: %s', 'updraftplus'), $supported).'</p>';
+		return '<p><a href="https://updraftplus.com/support/using-third-party-backups/" target="_blank">'.__('Was this a backup created by a different backup plugin? If so, then you might first need to rename it so that it can be recognized - please follow this link.', 'updraftplus').'</a></p><p>'.sprintf(__('Supported backup plugins: %s', 'updraftplus'), $supported).'</p>';
 	}
 
 	/**
@@ -141,7 +141,7 @@ class UpdraftPlus_Addons_Importer {
 						$btime = time();
 					} else {
 
-						// Don't put this in the for loop, or the magic __get() method gets called and opens the zip file every time the loop goes round
+						// Don't put this in the for loop, or the magic __get() method gets called every time the loop goes round
 						$numfiles = $zip->numFiles;
 
 						$latest_mtime = -1;
@@ -149,7 +149,7 @@ class UpdraftPlus_Addons_Importer {
 						for ($i=0; $i < $numfiles; $i++) {
 							$si = $zip->statIndex($i);
 							if ('wp-content/backups/wordpress-db-backup.sql' == $si['name']) {
-								@$zip->close();
+								@$zip->close();// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 								$btime = $si['mtime'];
 							} elseif (preg_match('#wp-content/backups/(.*)\.sql$#i', $si['name'], $matches)) {
 								if ($si['mtime'] > $latest_mtime) {
@@ -158,7 +158,7 @@ class UpdraftPlus_Addons_Importer {
 								}
 							}
 						}
-						@$zip->close();
+						@$zip->close();// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 					}
 					set_transient($transkey, $btime, 86400*365);
 

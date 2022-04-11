@@ -3,12 +3,12 @@
 /*
 UpdraftPlus Addon: backblaze:Backblaze Support
 Description: Backblaze Support
-Version: 1.2
+Version: 1.3
 Shop: /shop/backblaze/
 Include: includes/backblaze
 IncludePHP: methods/addon-base-v2.php
 RequiresPHP: 5.3.3
-Latest Change: 1.14.4
+Latest Change: 1.15.3
 */
 // @codingStandardsIgnoreEnd
 
@@ -73,9 +73,9 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 				$new_bucket_created = $storage->createPrivateBucket($bucket_name);
 				if ($new_bucket_created) {
 					$this->is_upload_bucket_exist = true;
-					$updraftplus->log("Backblaze: bucket was not found, but a new private bucket has now been created: ".$bucket_name);
+					$this->log("bucket was not found, but a new private bucket has now been created: ".$bucket_name);
 				} else {
-					$updraftplus->log("Backblaze: bucket was not found, and creation of a new private bucket failed: ".$bucket_name);
+					$this->log("bucket was not found, and creation of a new private bucket failed: ".$bucket_name);
 				}
 			} else {
 				$this->is_upload_bucket_exist = true;
@@ -94,7 +94,7 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 				$ret = true;
 			} else {
 				$ret = false;
-				$updraftplus->log("Backblaze: all-in-one upload fail: ".serialize($result));
+				$this->log("all-in-one upload fail: ".serialize($result));
 			}
 			
 		}
@@ -106,23 +106,25 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 	/**
 	 * N.B. If we ever use varying-size chunks, we must be careful as to what we do with $chunk_index
 	 *
-	 * @param String   $file 			Full path for the file being uploaded
-	 * @param Resource $fp 				File handle to read upload data from
-	 * @param Integer  $chunk_index 	Index of chunked upload
-	 * @param Integer  $upload_size 	Size of the upload, in bytes
-	 * @param Integer  $upload_start	How many bytes into the file the upload process has got
-	 * @param Integer  $upload_end		How many bytes into the file we will be after this chunk is uploaded
-	 * @param Integer  $total_file_size Total file size
+	 * @param String		  $file 		   - Basename for the file being uploaded
+	 * @param Resource|String $fp 			   - Data to send, or a file handle to read upload data from
+	 * @param Integer		  $chunk_index 	   - Index of chunked upload
+	 * @param Integer		  $upload_size 	   - Size of the upload, in bytes (this and the next are only used if a resource was given for $fp)
+	 * @param Integer		  $upload_start	   - How many bytes into the file the upload process has got
+	 * @param Integer		  $upload_end	   - How many bytes into the file we will be after this chunk is uploaded (not currently used)
+	 * @param Integer		  $total_file_size - Total file size (not currently used)
 	 *
 	 * @return Boolean|WP_Error
 	 */
-	public function chunked_upload($file, $fp, $chunk_index, $upload_size, $upload_start, $upload_end, $total_file_size) {
+	public function chunked_upload($file, $fp, $chunk_index, $upload_size = 0, $upload_start = 0, $upload_end = 0, $total_file_size = 0) {// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Filter use
 	
-		// Already done?
-		if ($upload_start < $this->_uploaded_size) return 1;
+		// Already done? This is not checked if we are sent data directly, as that implies forcing.
+		if (is_resource($fp) && $upload_start < $this->_uploaded_size) return 1;
 
-		global $updraftplus;
-	
+		$storage = $this->get_storage();
+		if (is_wp_error($storage)) return $storage;
+		if (!is_object($storage)) return new WP_Error('no_backblaze_service', "Backblaze service error (got a ".gettype($storage).")");
+		
 		$file_hash = md5($file);
 
 		$upload_state = $this->jobdata_get('upload_state_'.$file_hash, array());
@@ -134,17 +136,12 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 		$auth_token = empty($upload_state['auth_token']) ? false : $upload_state['auth_token'];
 		$need_new_state = ($large_file_id && $upload_url && $auth_token) ? false : true;
 		
-		$storage = $this->get_storage();
-
-		if (is_wp_error($storage)) return $storage;
-		if (!is_object($storage)) return new WP_Error('no_backblaze_service', "Backblaze service error (got a ".gettype($storage).")");
-
 		$opts = $this->options;
 		$backup_path = empty($opts['backup_path']) ? '' : trailingslashit($opts['backup_path']);
 		$remote_path = $backup_path.$file;
 
 		if (!$large_file_id) {
-			$updraftplus->log("Backblaze: initiating multi-part upload");
+			$this->log("initiating multi-part upload");
 			try {
 				$response = $storage->uploadLargeStart(array(
 					'FileName'   => $remote_path,
@@ -152,12 +149,12 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 				));
 
 				if (empty($response['fileId'])) {
-					$updraftplus->log('Backblaze: Unexpected response to uploadLargeStart: '.serialize($response));
+					$this->log('Unexpected response to uploadLargeStart: '.serialize($response));
 					return false;
 				}
 
 			} catch (Exception $e) {
-				$updraftplus->log('Backblaze: Unexpected chunk uploading exception ('.get_class($e).'): '.$e->getMessage().' (line: '.$e->getLine().', file: '.$e->getFile().')');
+				$this->log('Unexpected chunk uploading exception ('.get_class($e).'): '.$e->getMessage().' (line: '.$e->getLine().', file: '.$e->getFile().')');
 				return false;
 			}
 
@@ -167,21 +164,19 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 
 		$this->_large_file_id = $large_file_id;
 		
-		// $large_file_id is now set
-		
 		if (!$upload_url || !$auth_token) {
 			try {
-				$updraftplus->log("Backblaze: requesting multi-part file upload url (id $large_file_id)");
+				$this->log("requesting multi-part file upload url (id $large_file_id)");
 				$response = $storage->uploadLargeUrl(array(
 					'FileId' => $large_file_id,
 				));
 				if (empty($response['authorizationToken']) || empty($response['uploadUrl'])) {
-					$updraftplus->log('Unexpected response to uploadLargeUrl: '.serialize($response));
+					$this->log('Unexpected response to uploadLargeUrl: '.serialize($response));
 					return false;
 				}
 
 			} catch (Exception $e) {
-				$updraftplus->log('Backblaze: Unexpected error when getting upload URL ('.get_class($e).'): '.$e->getMessage().' (line: '.$e->getLine().', file: '.$e->getFile().')');
+				$this->log('Unexpected error when getting upload URL ('.get_class($e).'): '.$e->getMessage().' (line: '.$e->getLine().', file: '.$e->getFile().')');
 				return false;
 			}
 			$auth_token = $response['authorizationToken'];
@@ -198,17 +193,20 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 			));
 		}
 		
-		$timer_start = microtime(true);
-		$sha1_of_parts = $this->jobdata_get('sha1_of_parts_'.$file_hash, array());
-
-		if (false === ($data = fread($fp, $upload_size))) {
-			$updraftplus->log(__('Error: unexpected file read fail', 'updraftplus'), 'error');
-			$updraftplus->log("File read fail (fread() returned false)");
-			return false;
+		if (is_resource($fp)) {
+			if (false === ($data = fread($fp, $upload_size))) {
+				$this->log(__('Error: unexpected file read fail', 'updraftplus'), 'error');
+				$this->log("File read fail (fread() returned false)");
+				return false;
+			}
+		} elseif (is_string($fp)) {
+			$data = $fp;
+		} else {
+			return new WP_Error('backblaze_chunk_data_error', __('Error:', 'updraftplus')." backblaze::chunked_upload() received invalid input");
 		}
 		
-		$hash = sha1($data);
-		array_push($sha1_of_parts, $hash);
+		$sha1_of_parts = $this->jobdata_get('sha1_of_parts_'.$file_hash, array());
+		$sha1_of_parts[$chunk_index - 1] = sha1($data);
 
 		try {
 			$response = $storage->uploadLargePart(array(
@@ -218,17 +216,24 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 				'Body' => $data,
 			));
 			if (!is_array($response) || !isset($response['partNumber'])) {
-				$updraftplus->log("Unexpected response to uploadLargePart: ".serialize($response));
+				$this->log("Unexpected response to uploadLargePart: ".serialize($response));
 				return false;
 			}
 		} catch (Exception $e) {
+			if ($e->getCode() >= 500 && $e->getCode() <= 599) {
+				$this->jobdata_set('upload_state_'.$file_hash, array(
+					'large_file_id' => $large_file_id,
+					'upload_url' => '',
+					'auth_token' => '',
+				));
+			}
 			return new WP_Error('backblaze_chunk_upload_error', __('Error:', 'updraftplus')." {$e->getCode()}, Message: {$e->getMessage()}");
 		}
 		
 		$this->_sha1_of_parts = $sha1_of_parts;
+		$this->jobdata_set('sha1_of_parts_'.$file_hash, $sha1_of_parts);
 
 		$this->jobdata_set('total_bytes_sent_'.$file_hash, $upload_end + 1);
-		$this->jobdata_set('sha1_of_parts_'.$file_hash, $sha1_of_parts);
 		
 		return true;
 	}
@@ -269,16 +274,39 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 			global $updraftplus;
 			
 			if (preg_match('/No active upload for: .*/', $e->getMessage())) {
-				$updraftplus->log("Backblaze: upload: b2_finish_large_file has already been called ('".$e->getMessage()."')");
+				$this->log("upload: b2_finish_large_file has already been called ('".$e->getMessage()."')");
 				return 1;
+			} elseif (preg_match('/Part number (\d+) has not been uploaded/i', $e->getMessage(), $matches)) {
+				$missing_chunk_index = $matches[1];
+				$this->log("Exception in uploadLargeFinish(); will retry part $missing_chunk_index: {$e->getCode()}, Message: {$e->getMessage()} (line: {$e->getLine()}, file: {$e->getFile()})");
+				$updraft_dir = $updraftplus->backups_dir_location();
+				
+				// If more than this are needed, they will happen on the next resumption
+				static $retries = 12;
+				
+				if (false === ($data = file_get_contents($updraft_dir.'/'.$file, false, null, ($missing_chunk_index - 1 ) * $this->chunk_size, $this->chunk_size))) {
+					$retry_part = new WP_Error('file_read_failed', "Could not read: $file");
+				} elseif ($retries > 0) {
+					$retries--;
+					$retry_part = $this->chunked_upload($file, $data, $missing_chunk_index);
+					// Missing part was uploaded; try the whole again
+					if (true === $retry_part) {
+						return $this->chunked_upload_finish($file);
+					}
+					// N.B. chunked_upload() does its own logging when returning false
+				}
+				
+				if (is_wp_error($retry_part)) {
+					$this->log("Failed ".$retry_part->get_error_code().": ".$retry_part->get_error_message());
+				}
 			} else {
-				$updraftplus->log("Exception in uploadLargeFinish(): {$e->getCode()}, Message: {$e->getMessage()} (line: {$e->getLine()}, file: {$e->getFile()})");
+				$this->log("Exception in uploadLargeFinish(): {$e->getCode()}, Message: {$e->getMessage()} (line: {$e->getLine()}, file: {$e->getFile()})");
 			}
 			return false;
 		}
 		
 		global $updraftplus;
-		$updraftplus->log('Backblaze: upload: success (b2_finish_large_file called successfully; chunks='.count($this->_sha1_of_parts).', file ID returned='.$response->getId().', size='.$response->getSize().')');
+		$this->log('upload: success (b2_finish_large_file called successfully; chunks='.count($this->_sha1_of_parts).', file ID returned='.$response->getId().', size='.$response->getSize().')');
 
 		// Clean-up
 		$this->jobdata_delete('upload_state_'.$file_hash);
@@ -297,7 +325,7 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 	 *
 	 * @return Boolean|Integer - success/failure, or a byte counter of how much has been downloaded. Exceptions can also be thrown for errors.
 	 */
-	public function do_download($file, $fullpath, $start_offset) {
+	public function do_download($file, $fullpath) {// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Filter use
 		global $updraftplus;
 
 		$remote_files = $this->do_listfiles($file);
@@ -312,7 +340,7 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 			}
 		}
 		
-		$updraftplus->log("Backblaze: $file: file not found in listing of remote directory");
+		$this->log("$file: file not found in listing of remote directory");
 		
 		return false;
 
@@ -323,17 +351,9 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 	 *
 	 * @param String $file	  - the file (basename) to be downloaded
 	 * @param Array	 $headers - supplied headers
-	 * @param Mixed	 $data	  - pass-back from our call to the API (which we don't use)
-	 *
 	 * @return String - the data downloaded
 	 */
-	public function chunked_download($file, $headers, $data) {
-	
-		$storage = $data;
-	
-		global $updraftplus;
-		$storage = $data[0];
-		$file_obj = $data[1];
+	public function chunked_download($file, $headers) {
 
 		// $curl_options = array();
 		// if (is_array($headers) && !empty($headers['Range']) && preg_match('/bytes=(.*)$/', $headers['Range'], $matches)) {
@@ -378,11 +398,11 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 	/**
 	 * Delete an indicated file from remote storage
 	 *
-	 * @param String $file - the file (basename) to delete
+	 * @param Array $files - the files (basename) to delete
 	 *
-	 * @return Boolean - success/failure status of the delete operation. Throwing exception is also permitted.
+	 * @return Boolean|Array - success/failure status of the delete operation. Throwing exception is also permitted.
 	 */
-	public function do_delete($file) {
+	public function do_delete($files) {
 	
 		$opts = $this->options;
 
@@ -390,10 +410,28 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 
 		$backup_path = empty($opts['backup_path']) ? '' : trailingslashit($opts['backup_path']);
 		
-		$result = $storage->deleteFile(array(
-			'FileName'   => $backup_path.$file,
-			'BucketName' => $opts['bucket_name'],
-		));
+		try {
+			if (count($files) > 1) {
+				$multipleFiles = array();
+				foreach ($files as $file) {
+					$multipleFiles[] = array(
+						'FileName'   => $backup_path.$file,
+						'BucketName' => $opts['bucket_name']
+					);
+				}
+				$result = $storage->deleteMultipleFiles($multipleFiles, $opts['bucket_name'], $backup_path);
+			} else {
+				$fileName = $files[0];
+				$result = $storage->deleteFile(array(
+					'FileName'   => $backup_path.$fileName,
+					'BucketName' => $opts['bucket_name'],
+				));
+			}
+		} catch (UpdraftPlus_Backblaze_NotFoundException $e) {
+			// This exception should only be possible on the single file delete path
+			$this->log("$fileName: file not found (so likely already deleted)");
+			return true;
+		}
 
 		return $result;
 		
@@ -407,8 +445,6 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 	 * @return Array|WP_Error - returns an array of files (arrays with keys 'name' (basename) and (optional) 'size' (in bytes)) or a WordPress error. Throwing an exception is also allowed.
 	 */
 	public function do_listfiles($match = 'backup_') {
-
-		global $updraftplus;
 		$opts = $this->get_options();
 		$storage = $this->get_storage();
 		
@@ -428,7 +464,7 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 		
 		$files = array();
 
-		foreach ($remote_files as $k => $file) {
+		foreach ($remote_files as $file) {
 			$file_name = $file->getName();
 			if ($backup_path && 0 !== strpos($file_name, $backup_path)) continue;
 			$files[] = array(
@@ -460,17 +496,20 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 	 * @param String $testfile		  - basename to use for the test
 	 * @param Array  $posted_settings - settings to use
 	 *
-	 * @return Boolean - success/failure status
+	 * @return Array - 'result' indicating a success/failure status, and 'data' with returned data
 	 */
 	protected function do_credentials_test($testfile, $posted_settings = array()) {
 
 		$bucket_name = $posted_settings['bucket_name'];
 		
 		$result = false;
+		$data = null;
 		$storage = $this->get_storage();
 		
 		try {
-			if ($this->is_valid_bucket_name($bucket_name)) {
+			if (!$this->is_valid_bucket_name($bucket_name)) {
+				echo __('Invalid bucket name', 'updraftplus')."\n";
+			} else {
 				$buckets = $this->get_bucket_names_array();
 				$new_bucket_created = false;
 				if (!in_array($bucket_name, $buckets)) {
@@ -493,14 +532,12 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 				} elseif (!$new_bucket_created) {
 					printf(__("Failure: We could not successfully access or create such a bucket. Please check your access credentials, and if those are correct then try another bucket name (as another %s user may already have taken your name).", 'updraftplus'), 'Backblaze');
 				}
-			} else {
-				echo __('Invalid bucket name', 'updraftplus')."\n";
 			}
 		} catch (Exception $e) {
-			echo get_class($e).': '.$e->getMessage()."\n";
+			echo get_class($e).': '.$e->getMessage().' ('.$e->getCode().', '.get_class($e).') (line: '.$e->getLine().', file: '.$e->getFile().")\n";
 		}
 
-		return $result;
+		return array('result' => $result, 'data' => $data);
 		
 	}
 	
@@ -518,7 +555,7 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 			$backup_path = empty($posted_settings['backup_path']) ? '' : trailingslashit($posted_settings['backup_path']);
 			$storage = $this->get_storage();
 		
-			$result = $storage->deleteFile(array(
+			$storage->deleteFile(array(
 				'FileName'   => $backup_path.$testfile,
 				'BucketName' => $posted_settings['bucket_name'],
 			));
@@ -540,7 +577,7 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 	 */
 	public function get_supported_features() {
 		// This options format is handled via only accessing options via $this->get_options()
-		return array('multi_options', 'config_templates', 'multi_storage');
+		return array('multi_options', 'config_templates', 'multi_storage', 'conditional_logic', 'multi_delete');
 	}
 	
 	/**
@@ -554,6 +591,7 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 			'key' => '',
 			'bucket_name' => '',
 			'backup_path' => '',
+			'single_bucket_key_id' => '',
 		);
 	}
 	
@@ -565,7 +603,7 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 	 *
 	 * @return UpdraftPlus_Backblaze_CurlClient|WP_Error - the storage object. It should also be stored as $this->storage.
 	 */
-	public function do_bootstrap($opts, $connect = true) {
+	public function do_bootstrap($opts) {
 		$storage = $this->get_storage();
 
 		if (!empty($storage) && !is_wp_error($storage)) return $storage;
@@ -578,7 +616,12 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 
 			if (empty($opts['account_id']) || empty($opts['key'])) return new WP_Error('no_settings', __('No settings were found', 'updraftplus').' (Backblaze)');
 			
-			$storage = new UpdraftPlus_Backblaze_CurlClient($opts['account_id'], $opts['key']);
+			$backblaze_options = array(
+				'ssl_verify' => empty($opts['disableverify']),
+				'ssl_ca_certs' => empty($opts['useservercerts']) ? UPDRAFTPLUS_DIR.'/includes/cacert.pem' : false
+			);
+			
+			$storage = new UpdraftPlus_Backblaze_CurlClient($opts['account_id'], $opts['key'], $opts['single_bucket_key_id'], $backblaze_options);
 
 			$this->set_storage($storage);
 			
@@ -597,7 +640,7 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 	 *
 	 * @return Boolean
 	 */
-	protected function options_exist($opts) {
+	public function options_exist($opts) {
 		if (is_array($opts) && !empty($opts['account_id']) && !empty($opts['key'])) return true;
 		return false;
 	}
@@ -618,6 +661,8 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 			<td colspan="2">
 				<img width="434" src="<?php echo UPDRAFTPLUS_URL;?>/images/backblaze.png"><br>
 				<?php $updraftplus_admin->curl_check('Backblaze B2', false, 'backblaze'); ?>
+				
+				<p><a href="https://updraftplus.com/support/configuring-backblaze-cloud-storage-access-in-updraftplus/" target="_blank"><strong><?php echo sprintf(__('For help configuring %s, including screenshots, follow this link.', 'updraftplus'), 'Backblaze');?></strong></a></p>
 			</td>
 		</tr>
 
@@ -638,15 +683,22 @@ class UpdraftPlus_Addons_RemoteStorage_backblaze extends UpdraftPlus_RemoteStora
 		?>
 		
 		<tr class="<?php echo $classes;?>">
-			<th><?php echo _e('Account ID', 'updraftplus'); ?>:</th>
+			<th><?php echo _e('Master Application Key ID', 'updraftplus'); ?>:</th>
 			<td><input type="text" size="40" data-updraft_settings_test="account_id" <?php $this->output_settings_field_name_and_id('account_id');?> value="{{account_id}}"><br>
-			<em><?php echo sprintf(__('Get these settings from %s, or sign up %s.', 'updraftplus'), '<a target="_blank" href="https://secure.backblaze.com/b2_buckets.htm">'.__('here', 'updraftplus').'</a>', '<a target="_blank" href="https://www.backblaze.com/b2/">'.__('here', 'updraftplus').'</a>');?></em></a><br>
+			<em><?php echo sprintf(__('Get these settings from %s, or sign up %s.', 'updraftplus'), '<a aria-label="secure.backblaze.com/b2_buckets.htm" target="_blank" href="https://secure.backblaze.com/b2_buckets.htm">'.__('here', 'updraftplus').'</a>', '<a aria-label="www.backblaze.com/b2/" target="_blank" href="https://www.backblaze.com/b2/">'.__('here', 'updraftplus').'</a>');?></em></a><br>
 			</td>
 		</tr>
 
 		<tr class="<?php echo $classes;?>">
 			<th><?php _e('Application key', 'updraftplus'); ?>:</th>
 			<td><input type="<?php echo apply_filters('updraftplus_admin_secret_field_type', 'password'); ?>" size="40" data-updraft_settings_test="key" <?php $this->output_settings_field_name_and_id('key');?> value="{{key}}" /></td>
+		</tr>
+
+		<tr class="<?php echo $classes;?>">
+			<th><?php _e('Bucket application key ID', 'updraftplus'); ?>:</th>
+			<td><input title="<?php echo __('This is needed if, and only if, your application key was a bucket-specific application key (not a master key)', 'updraftplus');?>" type="text" size="40" data-updraft_settings_test="single_bucket_key_id" <?php $this->output_settings_field_name_and_id('single_bucket_key_id');?> value="{{single_bucket_key_id}}"><br>
+			<em><?php echo __('This is needed if, and only if, your application key was a bucket-specific application key (not a master key)', 'updraftplus');?></em></a><br>
+			</td>
 		</tr>
 
 		<tr class="<?php echo $classes;?>">

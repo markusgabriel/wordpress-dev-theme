@@ -3,10 +3,10 @@
 /*
 UpdraftPlus Addon: cloudfiles-enhanced:Rackspace Cloud Files, enhanced
 Description: Adds enhanced capabilities for Rackspace Cloud Files users
-Version: 1.7
+Version: 1.8
 RequiresPHP: 5.3.3
 Shop: /shop/cloudfiles-enhanced/
-Latest Change: 1.14.8
+Latest Change: 1.16.19
 */
 // @codingStandardsIgnoreEnd
 
@@ -18,7 +18,7 @@ if (version_compare(phpversion(), '5.3.3', '<') || (defined('UPDRAFTPLUS_CLOUDFI
 
 use OpenCloud\Rackspace;
 
-$updraftplus_addon_cloudfilesenhanced = new UpdraftPlus_Addon_CloudFilesEnhanced;
+$updraftplus_addon_cloudfilesenhanced = new UpdraftPlus_Addon_CloudFilesEnhanced;// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Unused variable $updraftplus_addon_cloudfilesenhanced But it is used Globally in class-commands.php so ignoring
 
 class UpdraftPlus_Addon_CloudFilesEnhanced {
 	
@@ -27,11 +27,18 @@ class UpdraftPlus_Addon_CloudFilesEnhanced {
 	private $regions;
 	
 	public function __construct() {
-		$this->title = __('Rackspace Cloud Files, enhanced', 'updraftplus');
-		$this->description = __('Adds enhanced capabilities for Rackspace Cloud Files users', 'updraftplus');
 		add_action('updraftplus_settings_page_init', array($this, 'updraftplus_settings_page_init'));
+		add_action('plugins_loaded', array($this, 'plugins_loaded'));
 		add_action('updraft_cloudfiles_newuser', array($this, 'newuser'));
 		add_filter('updraft_cloudfiles_apikeysetting', array($this, 'apikeysettings'));
+	}
+
+	public function plugins_loaded() {
+		$this->title = __('Rackspace Cloud Files, enhanced', 'updraftplus');
+		$this->description = __('Adds enhanced capabilities for Rackspace Cloud Files users', 'updraftplus');
+	}
+	
+	public function updraftplus_settings_page_init() {
 		
 		$this->accounts = array(
 			'us' => __('US (default)', 'updraftplus'),
@@ -46,9 +53,7 @@ class UpdraftPlus_Addon_CloudFilesEnhanced {
 			'HKG' => __('Hong Kong (HKG)', 'updraftplus'),
 			'LON' => __('London (LON)', 'updraftplus')
 		);
-	}
-
-	public function updraftplus_settings_page_init() {
+		
 		add_action('admin_footer', array($this, 'admin_footer'));
 	}
 	
@@ -59,7 +64,7 @@ class UpdraftPlus_Addon_CloudFilesEnhanced {
 	 * @return string anchor link html for creating new API user
 	 */
 	public function apikeysettings($msg) {
-		$msg = '<a href="<?php echo UpdraftPlus::get_current_clean_url();?>" id="updraft_cloudfiles_newapiuser_{{instance_id}}" class="updraft_cloudfiles_newapiuser" data-instance_id="{{instance_id}}">'.__('Create a new API user with access to only this container (rather than your whole account)', 'updraftplus').'</a>';
+		$msg = '<a href="'.UpdraftPlus::get_current_clean_url().'" id="updraft_cloudfiles_newapiuser_{{instance_id}}" class="updraft_cloudfiles_newapiuser" data-instance_id="{{instance_id}}">'.__('Create a new API user with access to only this container (rather than your whole account)', 'updraftplus').'</a>';
 		return $msg;
 	}
 	
@@ -110,6 +115,7 @@ class UpdraftPlus_Addon_CloudFilesEnhanced {
 				$disableverify
 			);
 		} catch (AuthenticationError $e) {
+			global $updraftplus;
 			$updraftplus->log('Cloud Files authentication failed ('.$e->getMessage().')');
 			$updraftplus->log(__('Cloud Files authentication failed', 'updraftplus').' ('.$e->getMessage().')', 'error');
 			return false;
@@ -313,7 +319,7 @@ class UpdraftPlus_Addon_CloudFilesEnhanced {
 	private function modal_script() {
 		?>
 		<script>
-		jQuery(document).ready(function($) {
+		jQuery(function($) {
 		
 			function set_allowable_regions() {
 				var account_location = $('#updraft_cfnewapiuser_accountlocation').val();
@@ -336,7 +342,7 @@ class UpdraftPlus_Addon_CloudFilesEnhanced {
 				set_allowable_regions();
 			});
 			
-			jQuery('#updraft_cfnewapiuser_accountlocation').change(function() {
+			jQuery('#updraft_cfnewapiuser_accountlocation').on('change', function() {
 				set_allowable_regions();
 			});
 

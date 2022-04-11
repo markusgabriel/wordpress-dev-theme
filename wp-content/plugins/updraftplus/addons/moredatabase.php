@@ -3,15 +3,15 @@
 /*
 UpdraftPlus Addon: moredatabase:Multiple database backup options
 Description: Provides the ability to encrypt database backups, and to backup external databases
-Version: 1.6
+Version: 1.7
 Shop: /shop/moredatabase/
-Latest Change: 1.14.9
+Latest Change: 1.16.24
 */
 // @codingStandardsIgnoreEnd
 
 if (!defined('UPDRAFTPLUS_DIR')) die('No direct access allowed');
 
-$updraftplus_addon_moredatabase = new UpdraftPlus_Addon_MoreDatabase;
+new UpdraftPlus_Addon_MoreDatabase;
 
 class UpdraftPlus_Addon_MoreDatabase {
 
@@ -32,10 +32,12 @@ class UpdraftPlus_Addon_MoreDatabase {
 		add_filter('updraft_extradb_testconnection_go', array($this, 'extradb_testconnection_go'), 10, 2);
 		add_action('updraftplus_restore_form_db', array($this, 'restore_form_db'), 9);
 		add_filter('updraftplus_get_settings_meta', array($this, 'get_settings_meta'));
-		add_filter('updraft_backupnow_database_showmoreoptions', array($this, 'backupnow_database_showmoreoptions'), 10, 2);
+		add_filter('updraft_backupnow_database_showmoreoptions', array($this, 'backupnow_database_showmoreoptions'), 20, 2);
 		add_filter('updraft_backupnow_options', array($this, 'backupnow_options'), 10, 2);
+		add_filter('updraftplus_initial_jobdata', array($this, 'updraftplus_moredatabases_jobdata'), 10, 2);
 		add_filter('updraftplus_backup_table', array($this, 'updraftplus_backup_table'), 10, 5);
 		add_filter('updraftplus_job_option_cache', array($this, 'encryption_option_cache'), 10, 1);
+		add_action('updraftplus_backup_db_begin', array($this, 'backup_db_begin'));
 	}
 
 	public function get_settings_meta($meta) {
@@ -56,18 +58,40 @@ class UpdraftPlus_Addon_MoreDatabase {
 	 */
 	public function restore_form_db() {
 
-		echo '<div class="updraft_restore_crypteddb" style="display:none;">'.__('Database decryption phrase', 'updraftplus').': ';
+		echo '<div class="updraft_restore_crypteddb updraft-hidden">'.__('Database decryption phrase', 'updraftplus').': ';
 
 		$updraft_encryptionphrase = UpdraftPlus_Options::get_updraft_option('updraft_encryptionphrase');
 
-		echo '<input type="'.apply_filters('updraftplus_admin_secret_field_type', 'text').'" name="updraft_encryptionphrase" value="'.esc_attr($updraft_encryptionphrase).'"></div><br>';
+		echo '<input type="'.apply_filters('updraftplus_admin_secret_field_type', 'text').'" name="updraft_encryptionphrase" value="'.esc_attr($updraft_encryptionphrase).'"></div>';
+	}
+
+	/**
+	 * This function is called via an action; it ensures the class is setup and ready for use
+	 *
+	 * @return void
+	 */
+	public function backup_db_begin() {
+		global $updraftplus;
+		if (empty($this->database_tables)) $this->database_tables = $updraftplus->jobdata_get('database_tables', array());
 	}
 
 	public function get_table_prefix($prefix) {
+		global $updraftplus;
 		if (UpdraftPlus_Options::get_updraft_option('updraft_backupdb_nonwp')) {
-			global $updraftplus;
 			$updraftplus->log("All tables found will be backed up (indicated by backupdb_nonwp option)");
 			return '';
+		} else {
+			
+			if (empty($this->database_tables)) return $prefix;
+
+			foreach ($this->database_tables as $database) {
+				foreach ($database as $table) {
+					if (0 !== strpos($table, $prefix) || 0 !== stripos($table, $prefix)) {
+						$updraftplus->log("All tables found will be considered for backup (indicated by user selecting to backup some non-WP tables)");
+						return '';
+					}
+				}
+			}
 		}
 		return $prefix;
 	}
@@ -84,7 +108,7 @@ class UpdraftPlus_Addon_MoreDatabase {
 	 * @param String $posted_data
 	 * @return Array
 	 */
-	public function extradb_testconnection_go($results_initial_value_ignored, $posted_data) {
+	public function extradb_testconnection_go($results_initial_value_ignored, $posted_data) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 	
 		if (empty($posted_data['user'])) return(array('r' => $posted_data['row'], 'm' => '<p>'.sprintf(__("Failure: No %s was given.", 'updraftplus').'</p>', __('user', 'updraftplus'))));
 
@@ -174,7 +198,7 @@ class UpdraftPlus_Addon_MoreDatabase {
 	
 			$ret .= '<div id="updraft_backupextradbs"></div>';
 			
-			$ret .= '<div id="updraft_backupextradbs_another_container"><a href="'.UpdraftPlus::get_current_clean_url().'" id="updraft_backupextradb_another">'.__('Add an external database to backup...', 'updraftplus').'</a></div>';
+			$ret .= '<div id="updraft_backupextradbs_another_container"><a href="'.UpdraftPlus::get_current_clean_url().'" id="updraft_backupextradb_another" class="updraft_icon_link"><span class="dashicons dashicons-plus"></span>'.__('Add an external database to backup...', 'updraftplus').'</a></div>';
 
 		add_action('admin_footer', array($this, 'admin_footer'));
 		return $ret;
@@ -187,20 +211,13 @@ class UpdraftPlus_Addon_MoreDatabase {
 			#updraft_backupextradbs_another_container {
 				clear:both; float:left;
 			}
-		
-			#updraft_encryptionphrase {
-				width: 232px;
-			}
-			
+					
 			#updraft_backupextradbs {
 				clear:both;
 				float:left;
 			}
 		
 			.updraft_backupextradbs_row {
-				border: 1px dotted;
-				margin: 4px;
-				padding: 4px;
 				float: left;
 				clear: both;
 			}
@@ -217,43 +234,41 @@ class UpdraftPlus_Addon_MoreDatabase {
 				padding-top:1px;
 			}
 			.updraft_backupextradbs_row .updraft_backupextradbs_row_textinput {
-				float: left; width: 100px; clear:none; margin-right: 6px;
+				float: left; width: calc(50% - 97px); clear:none; margin-right: 6px;
 			}
 			
 			.updraft_backupextradbs_row .updraft_backupextradbs_row_test {
-				width: 180px; padding: 6px 0; text-align:right;
+				margin-left: 90px; width: 150px; padding: 6px 0; text-align:left;
 			}
 			
 			.updraft_backupextradbs_row .updraft_backupextradbs_row_host {
 				clear:left;
 			}
-			
-			.updraft_backupextradbs_row_delete {
-				font-size: 80%;
-				float: right;
-				padding: 0px 4px;
-				cursor: pointer;
-				color: #808080;
+
+			@media (max-width: 782px) {
+				.updraft_backupextradbs_row .updraft_backupextradbs_row_test {
+					margin-left: 0; width: 100%;
+				}
 			}
 		</style>
 		<script>
-			jQuery(document).ready(function($) {
+			jQuery(function($) {
 				var updraft_extra_dbs = 0;
 				function updraft_extradbs_add(host, user, name, pass, prefix) {
 					updraft_extra_dbs++;
-					$('<div class="updraft_backupextradbs_row updraft-hidden" style="display:none;" id="updraft_backupextradbs_row_'+updraft_extra_dbs+'">'+
-						'<button type="button" title="<?php echo esc_attr(__('Remove', 'updraftplus'));?>" class="updraft_backupextradbs_row_delete">X</button>'+
+					$('<div class="updraft_small_box updraft_backupextradbs_row updraft-hidden" style="display:none;" id="updraft_backupextradbs_row_'+updraft_extra_dbs+'">'+
+						'<button type="button" class="updraft_box_delete_button updraft_backupextradbs_row_delete"><span title="<?php echo esc_attr(__('Remove', 'updraftplus'));?>" class="dashicons dashicons-no"></span></button>'+
 						'<h3><?php echo esc_js(__('Backup external database', 'updraftplus'));?></h3>'+
 						'<div class="updraft_backupextradbs_testresultarea"></div>'+
-						'<div class="updraft_backupextradbs_row_label updraft_backupextradbs_row_host"><?php echo esc_js(__('Host', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_host" type="text" name="updraft_extradbs['+updraft_extra_dbs+'][host]" value="'+host+'">'+
-						'<div class="updraft_backupextradbs_row_label"><?php echo esc_js(__('Username', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_user" type="text" name="updraft_extradbs['+updraft_extra_dbs+'][user]" value="'+user+'">'+
-						'<div class="updraft_backupextradbs_row_label"><?php echo esc_js(__('Password', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_pass" type="<?php echo apply_filters('updraftplus_admin_secret_field_type', 'text'); ?>" name="updraft_extradbs['+updraft_extra_dbs+'][pass]" value="'+pass+'">'+
-						'<div class="updraft_backupextradbs_row_label"><?php echo esc_js(__('Database', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_name" type="text" name="updraft_extradbs['+updraft_extra_dbs+'][name]" value="'+name+'">'+
-						'<div class="updraft_backupextradbs_row_label" title="<?php echo esc_attr('If you enter a table prefix, then only tables that begin with this prefix will be backed up.', 'updraftplus');?>"><?php echo esc_js(__('Table prefix', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_prefix" title="<?php echo esc_attr('If you enter a table prefix, then only tables that begin with this prefix will be backed up.', 'updraftplus');?>" type="text" name="updraft_extradbs['+updraft_extra_dbs+'][prefix]" value="'+prefix+'">'+
+						'<div class="updraft_backupextradbs_row_label updraft_backupextradbs_row_host" title="<?php echo esc_attr(__('Enter host.', 'updraftplus'));?>"><?php echo esc_js(__('Host', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_host" title="<?php echo esc_attr(__('Enter host', 'updraftplus'));?>" type="text" name="updraft_extradbs['+updraft_extra_dbs+'][host]" value="'+host+'">'+
+						'<div class="updraft_backupextradbs_row_label" title="<?php echo esc_attr(__('Enter username.', 'updraftplus'));?>"><?php echo esc_js(__('Username', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_user" title="<?php echo esc_attr(__('Enter username', 'updraftplus'));?>"type="text" name="updraft_extradbs['+updraft_extra_dbs+'][user]" value="'+user+'">'+
+						'<div class="updraft_backupextradbs_row_label" title="<?php echo esc_attr(__('Enter password.', 'updraftplus'));?>"><?php echo esc_js(__('Password', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_pass" title="<?php echo esc_attr(__('Enter password', 'updraftplus'));?>"type="<?php echo apply_filters('updraftplus_admin_secret_field_type', 'text'); ?>" name="updraft_extradbs['+updraft_extra_dbs+'][pass]" value="'+pass+'">'+
+						'<div class="updraft_backupextradbs_row_label" title="<?php echo esc_attr(__('Enter database.', 'updraftplus'));?>"><?php echo esc_js(__('Database', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_name" title="<?php echo esc_attr(__('Enter database', 'updraftplus'));?>" type="text" name="updraft_extradbs['+updraft_extra_dbs+'][name]" value="'+name+'">'+
+						'<div class="updraft_backupextradbs_row_label" title="<?php echo esc_attr(__('Enter table prefix', 'updraftplus')).'. '.esc_attr(__('If you enter a table prefix, then only tables that begin with this prefix will be backed up.', 'updraftplus'));?>"><?php echo esc_js(__('Table prefix', 'updraftplus'));?>:</div><input class="updraft_backupextradbs_row_textinput extradb_prefix" title="<?php echo esc_attr(__('Enter table prefix', 'updraftplus')).'. '.esc_attr('If you enter a table prefix, then only tables that begin with this prefix will be backed up.', 'updraftplus');?>" type="text" name="updraft_extradbs['+updraft_extra_dbs+'][prefix]" value="'+prefix+'">'+
 						'<div class="updraft_backupextradbs_row_label updraft_backupextradbs_row_test"><a href="<?php echo UpdraftPlus::get_current_clean_url();?>" class="updraft_backupextradbs_row_testconnection"><?php echo esc_js(__('Test connection...', 'updraftplus'));?></a></div>'+
 						'</div>').appendTo($('#updraft_backupextradbs')).fadeIn();
 				}
-				$('#updraft_backupextradb_another').click(function(e) {
+				$('#updraft_backupextradb_another').on('click', function(e) {
 					e.preventDefault();
 					updraft_extradbs_add('', '', '', '', '');
 				});
@@ -313,7 +328,7 @@ class UpdraftPlus_Addon_MoreDatabase {
 		<?php
 	}
 
-	public function database_encryption_config($x) {
+	public function database_encryption_config() {
 		$updraft_encryptionphrase = UpdraftPlus_Options::get_updraft_option('updraft_encryptionphrase');
 
 		$ret = '';
@@ -322,7 +337,7 @@ class UpdraftPlus_Addon_MoreDatabase {
 			$ret .= '<p><strong>'.sprintf(__('Your web-server does not have the %s module installed.', 'updraftplus'), 'PHP/mcrypt / PHP/OpenSSL').' '.__('Without it, encryption will be a lot slower.', 'updraftplus').'</strong></p>';
 		}
 
-		$ret .= '<input type="'.apply_filters('updraftplus_admin_secret_field_type', 'text').'" name="updraft_encryptionphrase" id="updraft_encryptionphrase" value="'.esc_attr($updraft_encryptionphrase).'">';
+		$ret .= '<input type="'.apply_filters('updraftplus_admin_secret_field_type', 'text').'" name="updraft_encryptionphrase" id="updraft_encryptionphrase" value="'.esc_attr($updraft_encryptionphrase).'" class="updraft_input--wide">';
 
 		$ret .= '<p>'.__('If you enter text here, it is used to encrypt database backups (Rijndael). <strong>Do make a separate record of it and do not lose it, or all your backups <em>will</em> be useless.</strong> This is also the key used to decrypt backups from this admin interface (so if you change it, then automatic decryption will not work until you change it back).', 'updraftplus').'</p>';
 
@@ -357,18 +372,17 @@ class UpdraftPlus_Addon_MoreDatabase {
 	 * @param  string $whichdb_suffix This spcifies the DB suffix
 	 * @return string                 returns the encrypted file name
 	 */
-	public function encrypt_file($result, $file, $encryption, $whichdb, $whichdb_suffix) {
+	public function encrypt_file($result, $file, $encryption, $whichdb, $whichdb_suffix) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
 		global $updraftplus;
 		$updraft_dir = $updraftplus->backups_dir_location();
 		$updraftplus->jobdata_set('jobstatus', 'dbencrypting'.$whichdb_suffix);
-		$encryption_result = 0;
 		$time_started = microtime(true);
-		$file_size = @filesize($updraft_dir.'/'.$file)/1024;
+		$file_size = @filesize($updraft_dir.'/'.$file)/1024;// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 
 		$memory_limit = ini_get('memory_limit');
-		$memory_usage = round(@memory_get_usage(false)/1048576, 1);
-		$memory_usage2 = round(@memory_get_usage(true)/1048576, 1);
+		$memory_usage = round(@memory_get_usage(false)/1048576, 1);// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
+		$memory_usage2 = round(@memory_get_usage(true)/1048576, 1);// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 		$updraftplus->log("Encryption being requested: file_size: ".round($file_size, 1)." KB memory_limit: $memory_limit (used: ${memory_usage}M | ${memory_usage2}M)");
 		
 		$encrypted_file = UpdraftPlus_Encryption::encrypt($updraft_dir.'/'.$file, $encryption);
@@ -387,7 +401,7 @@ class UpdraftPlus_Addon_MoreDatabase {
 			}
 
 			// Delete unencrypted file
-			@unlink($updraft_dir.'/'.$file);
+			@unlink($updraft_dir.'/'.$file);// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 
 			$updraftplus->jobdata_set('jobstatus', 'dbencrypted'.$whichdb_suffix);
 
@@ -410,24 +424,45 @@ class UpdraftPlus_Addon_MoreDatabase {
 
 		global $updraftplus;
 
-		$ret = '';
-
 		$ret .= '<em>'.__('You should backup all tables unless you are an expert in the internals of the WordPress database.', 'updraftplus').'</em><br>';
 
 		// In future this can be passed an array of databases to support external databases
 		$database_table_list = $updraftplus->get_database_tables();
 
-		foreach ($database_table_list as $key => $database) {
-			$database_name = $key;
-			$show_as = ('wp' == $key) ? __('WordPress database', 'updraftplus') : $key;
-			$ret .= '<br><em>'. $show_as . ' ' . __('tables', 'updraftplus') . '</em><br>';
+		$non_wp_tables = UpdraftPlus_Options::get_updraft_option('updraft_backupdb_nonwp');
+		$table_prefix = $updraftplus->get_table_prefix(false);
+		
+		foreach ($database_table_list as $database_name => $database) {
 
-			foreach ($database as $key => $value) {
+			// If we are not backing up non WordPress databases and the key is not the main WordPress database then skip it.
+			if (!$non_wp_tables && 'wp' != $database_name) continue;
+
+			$checkboxes = '';
+			$non_wp_table_exists = false;
+			foreach ($database as $value) {
+
+				$checked = 'checked="checked"';
+				
+				// If we are not backing up non WordPress tables and the current table does not contain the WordPress table prefix then don't check it but add a data attribute.
+				if (!$non_wp_tables && substr($value, 0, strlen($table_prefix)) !== $table_prefix) {
+					$checked = 'data-non_wp_table="1"';
+					if (!$non_wp_table_exists) $non_wp_table_exists = true;
+				}
+
 				/*
 					This outputs each table to the page setting the name to updraft_include_tables_ $database_name this allows the value to be trimmed later and to build an array of tables to be backed up
 				*/
-				$ret .= '<input class="updraft_db_entity" id="'.$prefix.'updraft_db_'.$value.'" checked="checked" type="checkbox" name="updraft_include_tables_'. $database_name . '" value="'.$value.'"> <label for="'.$prefix.'updraft_db_'.$value.'">'.$value.'</label><br>';
+				$checkboxes .= '<input class="updraft_db_entity" id="'.$prefix.'updraft_db_'.$value.'" '.$checked.' type="checkbox" name="updraft_include_tables_'. $database_name . '" value="'.$value.'"> <label for="'.$prefix.'updraft_db_'.$value.'">'.$value.'</label><br>';
 			}
+
+			$ret .= '<div class="backupnow-db-tables">';
+			$links = '<a class="backupnow-select-all-table" href="#">'.__('Select all', 'updraftplus').'</a>';
+			if ($non_wp_table_exists) $links .= ' | <a class="backupnow-select-all-this-site" href="#">'.__('Select all (this site)', 'updraftplus').'</a>';
+			$links .= ' | <a class="backupnow-deselect-all-table" href="#">'.__('Deselect all', 'updraftplus').'</a><br>';
+			$show_as = ('wp' == $database_name) ? __('WordPress database', 'updraftplus') : $database_name;
+			$ret .= '<br>'.$links.'<em>'. $show_as . ' ' . __('tables', 'updraftplus') . '</em><br>';
+			$ret .= $checkboxes;
+			$ret .= '</div>';
 		}
 
 		return $ret;
@@ -455,9 +490,28 @@ class UpdraftPlus_Addon_MoreDatabase {
 			}
 
 			$this->database_tables = $database_tables;
+			$options['database_tables'] = $database_tables;
 		}
 
 		return $options;
+	}
+
+	/**
+	 * This function will set up the backup job data for when we are starting a backup that does not include all the database tables. It changes the initial jobdata so that UpdraftPlus knows what database tables to backup or skip during a resumption.
+	 *
+	 * @param array $jobdata - the initial job data that we want to change
+	 * @param array $options - options sent from the front end
+	 *
+	 * @return array         - the modified jobdata
+	 */
+	public function updraftplus_moredatabases_jobdata($jobdata, $options) {
+
+		if (!is_array($jobdata) || empty($options['database_tables'])) return $jobdata;
+
+		$jobdata[] = 'database_tables';
+		$jobdata[] = $options['database_tables'];
+
+		return $jobdata;
 	}
 
 	/**
@@ -470,7 +524,7 @@ class UpdraftPlus_Addon_MoreDatabase {
 	 * @param  [array]      $dbinfo       an array of information about the current database
 	 * @return [boolean] a boolean value indicating if a table should be included in the backup or not
 	 */
-	public function updraftplus_backup_table($bool, $table, $table_prefix, $whichdb, $dbinfo) {
+	public function updraftplus_backup_table($bool, $table, $table_prefix, $whichdb, $dbinfo) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
 		// Check this empty not to cause errors
 		if (!empty($this->database_tables)) {

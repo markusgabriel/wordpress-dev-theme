@@ -4,16 +4,20 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8
+class ComposerStaticInitd5e8273caf5b55a86adb9d683149ad61
 {
     public static $files = array (
         'ce89ac35a6c330c55f4710717db9ff78' => __DIR__ . '/..' . '/kriswallsmith/assetic/src/functions.php',
+        '689b08b7620712b04324ecd7ed167c6b' => __DIR__ . '/..' . '/yahnis-elsts/plugin-update-checker/load-v4p10.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '3919eeb97e98d4648304477f8ef734ba' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/Crypt/Random.php',
-        '89ff252b349d4d088742a09c25f5dd74' => __DIR__ . '/..' . '/yahnis-elsts/plugin-update-checker/plugin-update-checker.php',
     );
 
     public static $prefixLengthsPsr4 = array (
+        'm' => 
+        array (
+            'mikemccabe\\JsonPatch\\' => 21,
+        ),
         'S' => 
         array (
             'Symfony\\Component\\Process\\' => 26,
@@ -26,6 +30,10 @@ class ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8
     );
 
     public static $prefixDirsPsr4 = array (
+        'mikemccabe\\JsonPatch\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mikemccabe/json-patch-php/src',
+        ),
         'Symfony\\Component\\Process\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/process',
@@ -53,7 +61,6 @@ class ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8
             'OpenCloud' => 
             array (
                 0 => __DIR__ . '/..' . '/rackspace/php-opencloud/lib',
-                1 => __DIR__ . '/..' . '/rackspace/php-opencloud/tests',
             ),
         ),
         'N' => 
@@ -120,6 +127,7 @@ class ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8
     );
 
     public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Psr\\Log\\AbstractLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/AbstractLogger.php',
         'Psr\\Log\\InvalidArgumentException' => __DIR__ . '/..' . '/psr/log/Psr/Log/InvalidArgumentException.php',
         'Psr\\Log\\LogLevel' => __DIR__ . '/..' . '/psr/log/Psr/Log/LogLevel.php',
@@ -128,8 +136,9 @@ class ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8
         'Psr\\Log\\LoggerInterface' => __DIR__ . '/..' . '/psr/log/Psr/Log/LoggerInterface.php',
         'Psr\\Log\\LoggerTrait' => __DIR__ . '/..' . '/psr/log/Psr/Log/LoggerTrait.php',
         'Psr\\Log\\NullLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/NullLogger.php',
-        'Psr\\Log\\Test\\DummyTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/LoggerInterfaceTest.php',
+        'Psr\\Log\\Test\\DummyTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/DummyTest.php',
         'Psr\\Log\\Test\\LoggerInterfaceTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/LoggerInterfaceTest.php',
+        'Psr\\Log\\Test\\TestLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/TestLogger.php',
         'Symfony\\Component\\EventDispatcher\\ContainerAwareEventDispatcher' => __DIR__ . '/..' . '/symfony/event-dispatcher/ContainerAwareEventDispatcher.php',
         'Symfony\\Component\\EventDispatcher\\Debug\\TraceableEventDispatcher' => __DIR__ . '/..' . '/symfony/event-dispatcher/Debug/TraceableEventDispatcher.php',
         'Symfony\\Component\\EventDispatcher\\Debug\\TraceableEventDispatcherInterface' => __DIR__ . '/..' . '/symfony/event-dispatcher/Debug/TraceableEventDispatcherInterface.php',
@@ -146,10 +155,10 @@ class ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit6988b0c3e6e2c8cbc94c2aa2c81e8dc8::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitd5e8273caf5b55a86adb9d683149ad61::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitd5e8273caf5b55a86adb9d683149ad61::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitd5e8273caf5b55a86adb9d683149ad61::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitd5e8273caf5b55a86adb9d683149ad61::$classMap;
 
         }, null, ClassLoader::class);
     }

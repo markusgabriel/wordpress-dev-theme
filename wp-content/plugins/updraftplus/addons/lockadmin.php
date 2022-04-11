@@ -156,7 +156,7 @@ class UpdraftPlus_Addon_LockAdmin {
 				<?php _e('Lock access to the UpdraftPlus settings page', 'updraftplus'); ?>
 			</h3>
 			<p>
-				<a href="https://updraftplus.com/lock-updraftplus-settings/">
+				<a href="https://updraftplus.com/lock-updraftplus-settings/" target="_blank">
 					<em><?php _e('Read more about how this works...', 'updraftplus');?></em>
 				</a>
 			</p>
@@ -168,7 +168,7 @@ class UpdraftPlus_Addon_LockAdmin {
 				<table>
 				<?php
 
-					echo $updraftplus_admin->settings_debugrow(__('Password', 'updraftplus').':', '<input type="text" id="updraft_unlockadmin_password" name="updraft_unlockadmin_password" value="'.esc_attr($this->opts['password']).'" style="width:230px;">');
+					echo $updraftplus_admin->settings_debugrow('<label for="updraft_unlockadmin_password">'.__('Password', 'updraftplus').'</label>:', '<input type="text" id="updraft_unlockadmin_password" name="updraft_unlockadmin_password" value="'.esc_attr($this->opts['password']).'" style="width:230px;">');
 
 					$session_lengths = array(
 						'3600' => __('1 hour', 'updraftplus'),
@@ -184,9 +184,9 @@ class UpdraftPlus_Addon_LockAdmin {
 					$session_options .= "<option value=\"$length\"".(($this->opts['session_length'] == $length) ? ' selected="selected"' : '').">".htmlspecialchars($text)."</option>\n";
 					}
 
-					echo $updraftplus_admin->settings_debugrow(__('Require password again after', 'updraftplus').':', '<select id="updraft_unlockadmin_session_length" name="updraft_unlockadmin_session_length" style="width:230px;">'.$session_options.'</select>');
+					echo $updraftplus_admin->settings_debugrow('<label for="updraft_unlockadmin_session_length">'.__('Require password again after', 'updraftplus').'</label>:', '<select id="updraft_unlockadmin_session_length" name="updraft_unlockadmin_session_length" style="width:230px;">'.$session_options.'</select>');
 
-					echo $updraftplus_admin->settings_debugrow(__('Support URL', 'updraftplus').':', '<input id="updraft_unlockadmin_support_url" name="updraft_unlockadmin_support_url" type="'.apply_filters('updraftplus_admin_secret_field_type', 'text').'" value="'.esc_attr($this->opts['support_url']).'" style="width:230px;"><br><em>'.__('Anyone seeing the lock screen will be shown this URL for support - enter a website address or an email address.', 'updraftplus').' <a href="'.$this->default_support_url.'">'.__('Otherwise, the default link will be shown.', 'updraftplus').'</a></em>');
+					echo $updraftplus_admin->settings_debugrow('<label for="updraft_unlockadmin_support_url">'.__('Support URL', 'updraftplus').'</label>:', '<input id="updraft_unlockadmin_support_url" name="updraft_unlockadmin_support_url" type="'.apply_filters('updraftplus_admin_secret_field_type', 'text').'" value="'.esc_attr($this->opts['support_url']).'" style="width:230px;"><br><em>'.__('Anyone seeing the lock screen will be shown this URL for support - enter a website address or an email address.', 'updraftplus').' <a target="_blank" href="'.$this->default_support_url.'">'.__('Otherwise, the default link will be shown.', 'updraftplus').'</a></em>');
 
 					echo $updraftplus_admin->settings_debugrow('', '<input class="button-primary change_lock_settings" type="submit" value="'.esc_attr(__('Change Lock Settings', 'updraftplus')).'">');
 					?>

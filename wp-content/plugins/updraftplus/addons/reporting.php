@@ -3,9 +3,9 @@
 /*
 UpdraftPlus Addon: reporting:Sophisticated reporting options
 Description: Provides various new reporting capabilities
-Version: 2.4
+Version: 2.6
 Shop: /shop/reporting/
-Latest Change: 2.14.5
+Latest Change: 2.15.8
 */
 // @codingStandardsIgnoreEnd
 
@@ -13,7 +13,7 @@ Latest Change: 2.14.5
 
 if (!defined('UPDRAFTPLUS_DIR')) die('No direct access allowed');
 
-$updraftplus_addon_reporting = new UpdraftPlus_Addon_Reporting;
+new UpdraftPlus_Addon_Reporting;
 
 class UpdraftPlus_Addon_Reporting {
 
@@ -25,6 +25,9 @@ class UpdraftPlus_Addon_Reporting {
 
 	private $syslog;
 
+	/**
+	 * Class constructor
+	 */
 	public function __construct() {
 		add_filter('updraftplus_showbackup_date', array($this, 'showbackup_date'), 10, 5);
 		add_filter('updraft_backupnow_options', array($this, 'backupnow_options'), 10, 2);
@@ -39,6 +42,7 @@ class UpdraftPlus_Addon_Reporting {
 		add_filter('updraft_report_attachments', array($this, 'updraft_report_attachments'));
 		add_filter('updraftplus_email_backup_skip_log_message', array($this, 'backup_skip_log_message'), 10, 4);
 		add_filter('updraft_backupnow_modal_afteroptions', array($this, 'backupnow_modal_afteroptions'), 10, 2);
+		add_filter('updraft_report_downloadable_file_link', array($this, 'generate_downloadable_file_link'), 10, 4);
 		add_action('updraft_final_backup_history', array($this, 'final_backup_history'));
 		add_action('updraft_report_finished', array($this, 'report_finished'));
 		add_action('init', array($this, 'init'));
@@ -46,13 +50,16 @@ class UpdraftPlus_Addon_Reporting {
 		$this->log_facility = (defined('UPDRAFTPLUS_LOG_FACILITY')) ? UPDRAFTPLUS_LOG_FACILITY : LOG_USER;
 	}
 
+	/**
+	 * Runs upon the WordPress action 'init'
+	 */
 	public function init() {
 		if (!class_exists('UpdraftPlus_Options')) return;
 		if (!UpdraftPlus_Options::get_updraft_option('updraft_log_syslog', false) || !function_exists('openlog') || !function_exists('syslog')) return;
 		if (false !== ($this->syslog = openlog($this->log_ident, LOG_ODELAY|LOG_PID, $this->log_facility))) add_filter('updraftplus_logline', array($this, 'logline'), 10, 3);
 	}
 
-	public function showbackup_date($date, $backup, $jobdata, $key, $simple_format) {
+	public function showbackup_date($date, $backup, $jobdata, $key, $simple_format) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		if (!is_array($backup) || empty($backup['label'])) return $date;
 		if ($simple_format) {
 			return $date.' - '.htmlspecialchars($backup['label']);
@@ -61,13 +68,21 @@ class UpdraftPlus_Addon_Reporting {
 		}
 	}
 
+	/**
+	 * Runs upon the WP filter updraft_backupnow_modal_afteroptions
+	 *
+	 * @param String $ret	 - unfiltered value to return
+	 * @param String $prefix - prefix to use
+	 *
+	 * @return String
+	 */
 	public function backupnow_modal_afteroptions($ret, $prefix) {
 
-		$ret .= '<p>
+		$ret .= '<p id="'.$prefix.'backupnow_label_container" class="new-backups-only">
 			<label for="'.$prefix.'backupnow_label">'.__('Your label for this backup (optional)', 'updraftplus').':</label> <input type="text" id="'.$prefix.'backupnow_label" name="label" size="40" maxlength="40" value="';
 
 		if ('remotesend_' == $prefix) {
-			$label = preg_replace('#^https?://#', '', network_site_url());
+			$label = preg_replace('#^https?://#i', '', network_site_url());
 			
 			$backup_of = __('Backup of:', 'updraftplus').' ';
 
@@ -106,7 +121,7 @@ class UpdraftPlus_Addon_Reporting {
 		} else {
 			$pri = LOG_INFO;
 		}
-		@syslog($pri, "($nonce) $line");
+		@syslog($pri, "($nonce) $line");// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
 		return $line;
 	}
 
@@ -132,11 +147,9 @@ class UpdraftPlus_Addon_Reporting {
 	 * @param  array  $jobdata
 	 * @return string
 	 */
-	public function updraft_report_body($report, $final_message, $contains, $errors, $warnings, $jobdata) {
+	public function updraft_report_body($report, $final_message, $contains, $errors, $warnings, $jobdata) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 	
 		global $updraftplus;
-
-		$rep = '';
 
 		$error_count = 0;
 		foreach ($errors as $err) {
@@ -153,9 +166,11 @@ class UpdraftPlus_Addon_Reporting {
 
 		$file_entities = $updraftplus->get_backupable_file_entities(true, true);
 
-		$date = get_date_from_gmt(gmdate('Y-m-d H:i:s', $jobdata['backup_time']), 'Y-m-d H:i');
+		$backup_time = empty($jobdata['incremental_run_start']) ? $jobdata['backup_time'] : $jobdata['incremental_run_start'];
+		
+		$date = get_date_from_gmt(gmdate('Y-m-d H:i:s', $backup_time), 'Y-m-d H:i');
 
-		$time_taken = time() - $jobdata['backup_time'];
+		$time_taken = time() - $backup_time;
 		$hrs = floor($time_taken/3600);
 		$mins = floor(($time_taken-3600*$hrs)/60);
 		$secs = $time_taken - 3600*$hrs - 60*$mins;
@@ -167,9 +182,9 @@ class UpdraftPlus_Addon_Reporting {
 
 		ob_start();
 		?>
-<style type="text/css">.rowlabel { font-weight: bold; width: 200px; float: left; clear: left;} .rowvalue { float: left; } h1, h2, h3, p, pre, ul { float: left; clear: left;} h1, h3, ul { margin-top: 2px; margin-bottom: 0; }</style>
+<style type="text/css">h1, h2, h3, p, pre, ul { clear: both; margin: 0; padding: 15px 0 0;} h1, h3, ul { margin-top: 2px; margin-bottom: 0; }</style>
 <h1><?php echo get_bloginfo('name').': '.__('Backup Report', 'updraftplus');?></h1>
-<p style="float: left; clear: left; margin: 0 0 8px;"><em><?php printf(__('Backup made by %s', 'updraftplus'), '<a href="https://updraftplus.com">UpdraftPlus '.$updraftplus->version); ?></a></em></p>
+<p style="float: left; clear: left; margin: 0 0 8px;"><em><?php printf(__('Backup made by %s', 'updraftplus'), '<a href="https://updraftplus.com" target="_blank">UpdraftPlus '.$updraftplus->version); ?></a></em></p>
 <?php
 	if (!class_exists('UpdraftPlus_Notices')) include_once(UPDRAFTPLUS_DIR.'/includes/updraftplus-notices.php');
 	global $updraftplus_notices;
@@ -178,21 +193,21 @@ class UpdraftPlus_Addon_Reporting {
 	echo '<div style="max-width: 700px; border: 1px solid; border-radius: 4px; font-size:110%; line-height: 110%; padding:8px; margin: 6px 0 12px; clear:left;">'.$ws_advert.'</div>';
 	}
 ?>
-<div class="rowlabel"><?php echo __('Backup of:', 'updraftplus'); ?></div> <div class="rowvalue"><a href="<?php echo esc_attr(site_url()); ?>"><?php echo site_url();?></a></div>
-<div class="rowlabel"><?php echo __('Latest status:', 'updraftplus');?></div> <div class="rowvalue"><?php echo $final_message; ?></div>
-<div class="rowlabel"><?php echo __('Backup began:', 'updraftplus');?></div> <div class="rowvalue"><?php echo $date; ?></div>
-<div class="rowlabel"><?php echo __('Contains:', 'updraftplus');?></div> <div class="rowvalue"><?php echo $contains; ?></div>
+<div style="width: 100%; display: table; margin-bottom: 5px;"><div style="font-weight: bold; width: 200px; float: left;"><?php echo __('Backup of:', 'updraftplus'); ?></div> <div style="float: left;"><a href="<?php echo esc_attr(site_url()); ?>"><?php echo site_url();?></a></div></div>
+<div style="width: 100%; display: table; margin-bottom: 5px;"><div style="font-weight: bold; width: 200px; float: left;"><?php echo __('Latest status:', 'updraftplus');?></div> <div style="float: left;"><?php echo $final_message; ?></div></div>
+<div style="width: 100%; display: table; margin-bottom: 5px;"><div style="font-weight: bold; width: 200px; float: left;"><?php echo __('Backup began:', 'updraftplus');?></div> <div style="float: left;"><?php echo $date; ?></div></div>
+<div style="width: 100%; display: table; margin-bottom: 5px;"><div style="font-weight: bold; width: 200px; float: left;"><?php echo __('Contains:', 'updraftplus');?></div> <div style="float: left;"><?php echo $contains; ?></div></div>
 <?php
 	$extra_messages = apply_filters('updraftplus_report_extramessages', array());
 	$extra_msg = '';
 	if (is_array($extra_messages)) {
 	foreach ($extra_messages as $msg) {
-		$extra_msg .= '<div class="rowlabel">'.htmlspecialchars($msg['key']).'</div> <div class="rowvalue">'.htmlspecialchars($msg['val']).'</div>';
+		$extra_msg .= '<div style="width: 100%; display: table; margin-bottom: 5px;"><div style="font-weight: bold; width: 200px; float: left;">'.htmlspecialchars($msg['key']).'</div> <div style="float: left;">'.htmlspecialchars($msg['val']).'</div></div>';
 	}
 	}
 	echo $extra_msg;
 ?>
-<div class="rowlabel"><?php echo __('Errors / warnings:', 'updraftplus');?></div> <div class="rowvalue"><?php echo $errors_and_warns; ?></div>
+<div style="width: 100%; display: table; margin-bottom: 5px;"><div style="font-weight: bold; width: 200px; float: left;"><?php echo __('Errors / warnings:', 'updraftplus');?></div> <div style="float: left;"><?php echo $errors_and_warns; ?></div></div>
 <?php
 		if ($updraftplus->error_count() > 0) {
 	echo '<h2>'.__('Errors', 'updraftplus')."</h2>\n<ul>";
@@ -219,8 +234,8 @@ class UpdraftPlus_Addon_Reporting {
 		}
 		?>
 <p>
-<div class="rowlabel"><?php echo __('Time taken:', 'updraftplus');?></div> <div class="rowvalue"><?php echo $time_taken;?></div>
-<div class="rowlabel"><?php echo __('Uploaded to:', 'updraftplus');?></div> <div class="rowvalue"><?php
+<div style="width: 100%; display: table; margin-bottom: 5px;"><div style="font-weight: bold; width: 200px; float: left;"><?php echo __('Time taken:', 'updraftplus');?></div> <div style="float: left;"><?php echo $time_taken;?></div></div>
+<div style="width: 100%; display: table; margin-bottom: 5px;"><div style="font-weight: bold; width: 200px; float: left;"><?php echo __('Uploaded to:', 'updraftplus');?></div> <div style="float: left;"><?php
 
 			$show_services = '';
 			foreach ($services as $serv) {
@@ -244,7 +259,7 @@ class UpdraftPlus_Addon_Reporting {
 			}
 			if ('' == $show_services && $add_none) $show_services .= __('None', 'updraftplus');
 
-			echo $show_services."</div></p>\n\n";
+			echo $show_services."</div></div></p>\n\n";
 
 			$checksums = $updraftplus->which_checksums();
 
@@ -278,14 +293,10 @@ class UpdraftPlus_Addon_Reporting {
 		// Lower priority: get there before other plugins which apply templates
 		add_filter('wp_mail_content_type', array($this, 'wp_mail_content_type'), 8);
 
-		$replace_a_tags_with_urls = $this->html;
-		$regex = '#\<a href="([^\>]*)"\>(.*)\</a\>#';
+		$report_body = $this->html;
 		
-		if (preg_match($regex, $replace_a_tags_with_urls, $matches)) {
-	$replace_a_tags_with_urls = preg_replace($regex, $matches[2].' - '.$matches[1], $replace_a_tags_with_urls);
-		}
 		
-		return str_replace("\n", "\r\n", strip_tags(preg_replace('#\<style([^\>]*)\>.*\</style\>#', '', $replace_a_tags_with_urls)));
+		return str_replace("\n", "\r\n", strip_tags(preg_replace('#\<style([^\>]*)\>.*\</style\>#', '', $report_body)));
 
 	}
 
@@ -358,7 +369,7 @@ class UpdraftPlus_Addon_Reporting {
 	 * @param string  $type backup entity types
 	 * @return boolean filtered value
 	 */
-	public function email_backup($doit, $addr, $ind, $type) {
+	public function email_backup($doit, $addr, $ind, $type) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$wholebackup = UpdraftPlus_Options::get_updraft_option('updraft_report_wholebackup', null);
 		$dbbackup = UpdraftPlus_Options::get_updraft_option('updraft_report_dbbackup', null);
 		if (is_array($wholebackup) && !empty($wholebackup[$ind]) && empty($dbbackup[$ind])) {
@@ -379,7 +390,7 @@ class UpdraftPlus_Addon_Reporting {
 	 * @param string  $descrip_type backup entity types
 	 * @return string log message
 	 */
-	public function backup_skip_log_message($log_message, $addr, $ind, $descrip_type) {
+	public function backup_skip_log_message($log_message, $addr, $ind, $descrip_type) {// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$wholebackup = UpdraftPlus_Options::get_updraft_option('updraft_report_wholebackup', null);
 		if (!is_array($wholebackup) || empty($wholebackup[$ind])) {
 			return 'You have chosen to not send the backup via the email remote storage option for '.$addr.'. '.$descrip_type.' will not be sent.';
@@ -388,14 +399,14 @@ class UpdraftPlus_Addon_Reporting {
 		}
 	}
 
-	public function email_whichaddresses($blurb) {
+	public function email_whichaddresses() {
 		return __('Use the "Reporting" section to configure the email addresses to be used.', 'updraftplus');
 	}
 
 	public function admin_footer() {
 		?>
 		<script>
-			jQuery(document).ready(function($){
+			jQuery(function($){
 			
 				var reportbox_index = $('#updraft_report_cell .updraft_reportbox').length + 2;
 				
@@ -403,12 +414,14 @@ class UpdraftPlus_Addon_Reporting {
 					$(this).closest('.updraft_reportbox').fadeOut('medium', function() { $(this).remove(); });
 				});
 				
-				$('#updraft-navtab-settings-content .updraft_report_another').click(function(e) {
+				$('#updraft-navtab-settings-content .updraft_report_another').on('click', function(e) {
 					e.preventDefault();
 
-					$('#updraft-navtab-settings-content .updraft_report_another_p').before('<div id="updraft_reportbox_'+reportbox_index+'" class="updraft_reportbox updraft-hidden" style="display:none;"><button class="updraft_reportbox_delete" reportbox_index="'+reportbox_index+'" type="button"><span class="dashicons dashicons-no"></span></button><input type="text" title="'+updraftlion.enteremailhere+'" class="updraft_report_email" name="updraft_email['+reportbox_index+']" value="" /><br><input class="updraft_report_checkbox" type="checkbox" id="updraft_report_warningsonly_'+reportbox_index+'" name="updraft_report_warningsonly['+reportbox_index+']"><label for="updraft_report_warningsonly_'+reportbox_index+'">'+updraftlion.sendonlyonwarnings+'</label><br><div class="updraft_report_wholebackup">\
-<input class="updraft_report_checkbox" type="checkbox" id="updraft_report_wholebackup_'+reportbox_index+'" name="updraft_report_wholebackup['+reportbox_index+']" title="'+updraftlion.emailsizelimits+'"><label for="updraft_report_wholebackup_'+reportbox_index+'" title="'+updraftlion.emailsizelimits+'">'+updraftlion.wholebackup+'</label></div><div class="updraft_report_dbbackup updraft_report_disabled">\
-<input class="updraft_report_checkbox" type="checkbox" id="updraft_report_dbbackup_'+reportbox_index+'" disabled name="updraft_report_dbbackup['+reportbox_index+']" title="'+updraftlion.emailsizelimits+'"><label for="updraft_report_dbbackup_'+reportbox_index+'" title="'+updraftlion.emailsizelimits+'">'+updraftlion.dbbackup+'</label></div></div>');
+					$('#updraft-navtab-settings-content .updraft_report_another_p').before('<div id="updraft_reportbox_'+reportbox_index+'" class="updraft_reportbox updraft-hidden" style="display:none;"><button class="updraft_reportbox_delete" reportbox_index="'+reportbox_index+'" type="button"><span class="dashicons dashicons-no"></span></button>\
+<input type="text" title="'+updraftlion.enteremailhere+'" class="updraft_report_email" name="updraft_email['+reportbox_index+']" value="" />\
+<label for="updraft_report_warningsonly_'+reportbox_index+'" class="updraft_checkbox"><input class="updraft_report_checkbox" type="checkbox" id="updraft_report_warningsonly_'+reportbox_index+'" name="updraft_report_warningsonly['+reportbox_index+']"> '+updraftlion.sendonlyonwarnings+'</label><div class="updraft_report_wholebackup">\
+<label for="updraft_report_wholebackup_'+reportbox_index+'" title="'+updraftlion.emailsizelimits+'" class="updraft_checkbox"><input class="updraft_report_checkbox" type="checkbox" id="updraft_report_wholebackup_'+reportbox_index+'" name="updraft_report_wholebackup['+reportbox_index+']" title="'+updraftlion.emailsizelimits+'"> '+updraftlion.wholebackup+'</label></div><div class="updraft_report_dbbackup updraft_report_disabled">\
+<label for="updraft_report_dbbackup_'+reportbox_index+'" title="'+updraftlion.emailsizelimits+'" class="updraft_checkbox"><input class="updraft_report_checkbox" type="checkbox" id="updraft_report_dbbackup_'+reportbox_index+'" disabled name="updraft_report_dbbackup['+reportbox_index+']" title="'+updraftlion.emailsizelimits+'"> '+updraftlion.dbbackup+'</label></div></div>');
 					$('#updraft_reportbox_'+reportbox_index).fadeIn();
 
 					reportbox_index++;
@@ -417,7 +430,7 @@ class UpdraftPlus_Addon_Reporting {
 				$('#updraft_report_row').on('change', '.updraft_report_wholebackup .updraft_report_checkbox', function() {
 					var reportbox = $(this).closest('.updraft_reportbox').find('.updraft_report_dbbackup');
 					if ($(this).is(':checked')) {
-						reportbox.removeClass('updraft_report_disabled').find('.updraft_report_checkbox').removeProp('disabled');
+						reportbox.removeClass('updraft_report_disabled').find('.updraft_report_checkbox').prop('disabled', false);
 					} else {
 						reportbox.find('.updraft_report_checkbox').prop('checked', false);
 						reportbox.addClass('updraft_report_disabled').find('.updraft_report_checkbox').prop('disabled', true);
@@ -428,14 +441,14 @@ class UpdraftPlus_Addon_Reporting {
 		<?php
 	}
 
-	public function updraftplus_report_form($in) {
+	public function updraftplus_report_form() {
 
 		add_action('admin_footer', array($this, 'admin_footer'));
 
 		// Columns: Email address | only send if no errors/warnings
 
 		$out = '<tr id="updraft_report_row">
-				<th>'.__('Email reports', 'updraftplus').':</th>
+				<th>'.__('Send reports', 'updraftplus').':</th>
 				<td id="updraft_report_cell">';
 
 		// Could be multiple (separated by commas)
@@ -476,7 +489,7 @@ class UpdraftPlus_Addon_Reporting {
 
 		if (0 === $ind) $out .= $this->report_box_generator('', 0, false, false, false);
 
-		$out .= '<p class="updraft_report_another_p"><a class="updraft_report_another" href="'.UpdraftPlus::get_current_clean_url().'#updraft_report_row"><span class="dashicons dashicons-plus"></span>'.__('Add another address...', 'updraftplus').'</a></p>';
+		$out .= '<p class="updraft_report_another_p"><a class="updraft_report_another updraft_icon_link" href="'.UpdraftPlus::get_current_clean_url().'#updraft_report_row"><span class="dashicons dashicons-plus"></span>'.__('Add another address...', 'updraftplus').'</a></p>';
 
 		$out .= '</td>
 			</tr>';
@@ -516,19 +529,51 @@ class UpdraftPlus_Addon_Reporting {
 
 		$out .='<div id="updraft_reportbox_'.$ind.'" class="updraft_reportbox">';
 
-		$out .= '<button class="updraft_reportbox_delete" type="button"><span class="dashicons dashicons-no"></span></button>';
+		$out .= '<button class="updraft_reportbox_delete" type="button"><span title="'.__('Remove', 'updraftplus').'" class="dashicons dashicons-no"></span></button>';
 
-		$out .= '<input type="text" title="'.esc_attr(__('To send to more than one address, separate each address with a comma.', 'updraftplus')).'" class="updraft_report_email" name="updraft_email['.$ind.']" value="'.esc_attr($addr).'" /><br>';
+		$out .= '<input type="text" title="'.esc_attr(__('To send to more than one address, separate each address with a comma.', 'updraftplus')).'" class="updraft_report_email" name="updraft_email['.$ind.']" value="'.esc_attr($addr).'" />';
 
-		$out .= '<input '.(($warningsonly) ? 'checked="checked" ' : '').' id="updraft_report_warningsonly_'.$ind.'" class="updraft_report_checkbox" type="checkbox"  name="updraft_report_warningsonly['.$ind.']"><label for="updraft_report_warningsonly_'.$ind.'"> '.__('Send a report only when there are warnings/errors', 'updraftplus').'</label><br>';
+		$out .= '<label for="updraft_report_warningsonly_'.$ind.'" class="updraft_checkbox"><input '.(($warningsonly) ? 'checked="checked" ' : '').' id="updraft_report_warningsonly_'.$ind.'" class="updraft_report_checkbox" type="checkbox"  name="updraft_report_warningsonly['.$ind.']"> '.__('Send a report only when there are warnings/errors', 'updraftplus').'</label>';
 
-		$out .= '<div class="updraft_report_wholebackup"><input '.(($wholebackup) ? 'checked="checked" ' : '').'class="updraft_report_checkbox" type="checkbox" id="updraft_report_wholebackup_'.$ind.'" name="updraft_report_wholebackup['.$ind.']" title="'.esc_attr(sprintf(__('Be aware that mail servers tend to have size limits; typically around %s MB; backups larger than any limits will likely not arrive.', 'updraftplus'), '10-20')).'"><label for="updraft_report_wholebackup_'.$ind.'" title="'.esc_attr(sprintf(__('Be aware that mail servers tend to have size limits; typically around %s MB; backups larger than any limits will likely not arrive.', 'updraftplus'), '10-20')).'"> '.__('When the Email storage method is enabled, also send the backup', 'updraftplus').'</label></div>';
+		$out .= '<div class="updraft_report_wholebackup"><label for="updraft_report_wholebackup_'.$ind.'" title="'.esc_attr(sprintf(__('Be aware that mail servers tend to have size limits; typically around %s MB; backups larger than any limits will likely not arrive.', 'updraftplus'), '10-20')).'" class="updraft_checkbox"><input '.(($wholebackup) ? 'checked="checked" ' : '').'class="updraft_report_checkbox" type="checkbox" id="updraft_report_wholebackup_'.$ind.'" name="updraft_report_wholebackup['.$ind.']" title="'.esc_attr(sprintf(__('Be aware that mail servers tend to have size limits; typically around %s MB; backups larger than any limits will likely not arrive.', 'updraftplus'), '10-20')).'"> '.__('When email storage method is enabled, and an email address is entered, also send the backup', 'updraftplus').'</label></div>';
 
-		$out .= '<div class="updraft_report_dbbackup'.((!$wholebackup) ? ' updraft_report_disabled' : '').'"><input '.(($dbbackup) ? 'checked="checked" ' : '').'class="updraft_report_checkbox" type="checkbox" '.((!$wholebackup) ? 'disabled ' : '').'id="updraft_report_dbbackup_'.$ind.'" name="updraft_report_dbbackup['.$ind.']" title="'.esc_attr(sprintf(__('Be aware that mail servers tend to have size limits; typically around %s MB; backups larger than any limits will likely not arrive.', 'updraftplus').' '.__('Use this option to only send database backups when sending to email, and skip other components.', 'updraftplus'), '10-20')).'"><label for="updraft_report_dbbackup_'.$ind.'" title="'.esc_attr(sprintf(__('Be aware that mail servers tend to have size limits; typically around %s MB; backups larger than any limits will likely not arrive as a result UpdraftPlus will only send Database backups to email.', 'updraftplus'), '10-20')).'"> '.__('Only email the database backup', 'updraftplus').'</label></div>';
+		$out .= '<div class="updraft_report_dbbackup'.((!$wholebackup) ? ' updraft_report_disabled' : '').'"><label for="updraft_report_dbbackup_'.$ind.'" title="'.esc_attr(sprintf(__('Be aware that mail servers tend to have size limits; typically around %s MB; backups larger than any limits will likely not arrive as a result UpdraftPlus will only send Database backups to email.', 'updraftplus'), '10-20')).'" class="updraft_checkbox"><input '.(($dbbackup) ? 'checked="checked" ' : '').'class="updraft_report_checkbox" type="checkbox" '.((!$wholebackup) ? 'disabled ' : '').'id="updraft_report_dbbackup_'.$ind.'" name="updraft_report_dbbackup['.$ind.']" title="'.esc_attr(sprintf(__('Be aware that mail servers tend to have size limits; typically around %s MB; backups larger than any limits will likely not arrive.', 'updraftplus').' '.__('Use this option to only send database backups when sending to email, and skip other components.', 'updraftplus'), '10-20')).'"> '.__('Only email the database backup', 'updraftplus').'</label></div>';
 		
 		$out .= '</div>';
 
 		return $out;
 
+	}
+
+	/**
+	 * Generate a downloadable backup link
+	 *
+	 * @param String  $link    the unfiltered backup file name in plain text format
+	 * @param String  $entity  the backup entity (db, uploads, plugins, etc..)
+	 * @param Integer $index   the index number of the backup file
+	 * @param Array   $jobdata the jobdata for the currently running backup
+	 * @return String the filtered backup file name with its HTML link text attached
+	 */
+	public function generate_downloadable_file_link($link, $entity, $index, $jobdata) {
+
+		global $updraftplus;
+
+		$jobdata['service'] = empty($jobdata['service']) ? array() : $updraftplus->get_canonical_service_list($jobdata['service']);
+
+		// I was thinking not to check the the nonce fisrt, but at this point I believe we should only generate a valid link
+		$download_link = is_array($jobdata) && !empty($jobdata['backup_time']) && !empty($this->file_nonce) && empty($jobdata['service']);
+
+		if ($download_link) {
+			$link = '<a href="'.esc_url(add_query_arg(array(
+				'page' => 'updraftplus',
+				'type' => $entity,
+				'timestamp' => $jobdata['backup_time'],
+				'nonce' => $this->file_nonce,
+				'findex' => $index,
+				'action' => 'updraft_download_backup',
+			), UpdraftPlus_Options::admin_page_url())).'">'.$link.'</a>';
+		}
+
+		return $link;
 	}
 }
