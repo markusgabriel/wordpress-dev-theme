@@ -80,15 +80,15 @@ $table_prefix = 'wp_';
  * For instructions on the use of this script, see:
  * https://butlerblog.com/easy-smtp-email-wordpress-wp_mail/
  */
-define( 'SMTP_USER',   'noreply@blackpattern.de' );    // Username to use for SMTP authentication
-define( 'SMTP_PASS',   'R@MjPeo2MY@V' );       // Password to use for SMTP authentication
-define( 'SMTP_HOST',   'smtps.udag.de' );    // The hostname of the mail server
-define( 'SMTP_FROM',   'noreply@blackpattern.de' ); // SMTP From email address
-define( 'SMTP_NAME',   'Blackpattern Wordpress' );    // SMTP From name
-define( 'SMTP_PORT',   '465' );                  // SMTP port number - likely to be 25, 465 or 587
-define( 'SMTP_SECURE', 'tls' );                 // Encryption system to use - ssl or tls
-define( 'SMTP_AUTH',    true );                 // Use SMTP authentication (true|false)
-define( 'SMTP_DEBUG',   0 );
+define( 'SMTP_USER', getenv('SMTP_USER'));
+define( 'SMTP_PASS', getenv('SMTP_PASS'));
+define( 'SMTP_HOST', getenv('SMTP_HOST'));
+define( 'SMTP_FROM', getenv('SMTP_FROM'));
+define( 'SMTP_NAME', getenv('SMTP_NAME'));
+define( 'SMTP_PORT', getenv('SMTP_PORT'));
+define( 'SMTP_SECURE', getenv('SMTP_SECURE'));
+define( 'SMTP_AUTH', getenv('SMTP_AUTH'));
+define( 'SMTP_DEBUG', getenv('SMTP_DEBUG'));
 
 /* That's all, stop editing! Happy publishing. */
 
